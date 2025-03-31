@@ -1,22 +1,85 @@
 
 import { Match } from "../types";
 
-const API_KEY = "demo"; // Replace with your actual API key if needed
-
-// Base URL for the football-data.org API
-const API_BASE_URL = "https://api.football-data.org/v4";
+// Football API credentials
+const API_KEY = "86a4fba1542ddddc8f7e57215aa37c52";
+const API_URL = "https://v3.football.api-sports.io";
 
 // Function to fetch matches for a specific team
 export const fetchMatchesForTeam = async (teamName: string): Promise<Match[]> => {
   try {
-    // For demo purposes, simulate API fetch with the existing data generator
-    // In a real implementation, you would make an actual API call here
     console.log(`Fetching matches for ${teamName}...`);
     
-    // This is a fallback for demo/development
-    return generateMatchesForTeam(teamName);
+    // First get the team ID from the API
+    const teamData = await fetchTeamId(teamName);
+    
+    if (!teamData) {
+      console.error(`Team ${teamName} not found in API`);
+      return generateMatchesForTeam(teamName); // Fallback
+    }
+    
+    // Then fetch fixtures for that team
+    const fixtures = await fetchFixtures(teamData.id);
+    return fixtures;
   } catch (error) {
     console.error("Error fetching matches:", error);
+    return generateMatchesForTeam(teamName); // Fallback to generated data
+  }
+};
+
+// Helper function to get team ID from name
+const fetchTeamId = async (teamName: string) => {
+  try {
+    const response = await fetch(`${API_URL}/teams?name=${encodeURIComponent(teamName)}&league=88&season=2024`, {
+      method: 'GET',
+      headers: {
+        'x-apisports-key': API_KEY
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.response && data.response.length > 0) {
+      return {
+        id: data.response[0].team.id,
+        name: data.response[0].team.name
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching team ID:", error);
+    return null;
+  }
+};
+
+// Helper function to fetch fixtures
+const fetchFixtures = async (teamId: number): Promise<Match[]> => {
+  try {
+    // Fetch upcoming fixtures for this team
+    const response = await fetch(`${API_URL}/fixtures?team=${teamId}&league=88&season=2024&status=NS`, {
+      method: 'GET',
+      headers: {
+        'x-apisports-key': API_KEY
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (!data.response) {
+      throw new Error("Invalid API response");
+    }
+    
+    // Map API data to our Match format
+    return data.response.map((fixture: any) => ({
+      id: fixture.fixture.id.toString(),
+      homeTeam: fixture.teams.home.name,
+      awayTeam: fixture.teams.away.name,
+      date: fixture.fixture.date, // ISO string
+      competition: "Eredivisie",
+      venue: fixture.fixture.venue?.name || (fixture.teams.home.name === teamId ? "Thuis" : "Uit"),
+    }));
+  } catch (error) {
+    console.error("Error fetching fixtures:", error);
     return [];
   }
 };

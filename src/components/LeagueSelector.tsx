@@ -45,17 +45,29 @@ const LeagueSelector: React.FC<LeagueSelectorProps> = ({ leagues, selectedLeague
         <SelectContent>
           <SelectItem value="all_leagues" className="flex items-center">Alle competities</SelectItem>
           {leagues.map((league) => (
-            <SelectItem key={league.id} value={league.id} className="flex items-center">
-              <div className="flex items-center gap-2">
-                <img 
-                  src={league.logo} 
-                  alt={league.name} 
-                  className="w-5 h-5 object-contain mr-2"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/placeholder.svg";
-                  }}
-                />
-                <span>{league.name}</span>
+            <SelectItem 
+              key={league.id} 
+              value={league.id} 
+              className="flex items-center"
+              disabled={league.id !== "eredivisie"}
+            >
+              <div className="flex items-center gap-2 justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <img 
+                    src={league.logo} 
+                    alt={league.name} 
+                    className="w-5 h-5 object-contain mr-2"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder.svg";
+                    }}
+                  />
+                  <span>{league.name}</span>
+                </div>
+                {league.id !== "eredivisie" && 
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full ml-2">
+                    Binnenkort
+                  </span>
+                }
               </div>
             </SelectItem>
           ))}
