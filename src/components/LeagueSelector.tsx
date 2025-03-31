@@ -1,6 +1,14 @@
 
 import React from 'react';
 import { League } from '../types';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LeagueSelectorProps {
   leagues: League[];
@@ -9,45 +17,50 @@ interface LeagueSelectorProps {
 }
 
 const LeagueSelector: React.FC<LeagueSelectorProps> = ({ leagues, selectedLeague, onLeagueSelect }) => {
-  const handleLeagueClick = (leagueId: string) => {
-    // If the league is already selected, deselect it (null)
-    if (selectedLeague === leagueId) {
-      onLeagueSelect('');
-    } else {
-      onLeagueSelect(leagueId);
-    }
+  const isMobile = useIsMobile();
+  
+  const handleLeagueChange = (value: string) => {
+    // If empty string is selected, it means "All leagues"
+    onLeagueSelect(value);
   };
 
+  // Find the currently selected league name or use "Alle competities" as default
+  const selectedLeagueName = selectedLeague 
+    ? leagues.find(league => league.id === selectedLeague)?.name || "" 
+    : "Alle competities";
+
   return (
-    <div className="mb-8">
-      <h2 className="text-xl font-semibold mb-4">Selecteer een competitie</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {leagues.map((league) => (
-          <button
-            key={league.id}
-            onClick={() => handleLeagueClick(league.id)}
-            className={`border rounded-lg p-3 transition-all flex flex-col items-center justify-center h-28 hover:shadow-md ${
-              selectedLeague === league.id
-                ? 'border-sport-blue bg-blue-50 ring-2 ring-sport-blue'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <div className="w-12 h-12 mb-2 flex items-center justify-center">
-              <img
-                src={league.logo}
-                alt={`${league.name} logo`}
-                className="max-w-full max-h-full object-contain"
-                onError={(e) => {
-                  // Fallback if image fails to load
-                  (e.target as HTMLImageElement).src = "/placeholder.svg";
-                }}
-              />
-            </div>
-            <span className="text-sm font-medium text-center">{league.name}</span>
-            <span className="text-xs text-gray-500">{league.country}</span>
-          </button>
-        ))}
-      </div>
+    <div className="mb-6">
+      <h2 className="text-lg font-semibold mb-2">Selecteer een competitie</h2>
+      <Select 
+        value={selectedLeague || ""} 
+        onValueChange={handleLeagueChange}
+        defaultValue="eredivisie"
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Kies een competitie">
+            {selectedLeagueName}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">Alle competities</SelectItem>
+          {leagues.map((league) => (
+            <SelectItem key={league.id} value={league.id} className="flex items-center">
+              <div className="flex items-center gap-2">
+                <img 
+                  src={league.logo} 
+                  alt={league.name} 
+                  className="w-5 h-5 object-contain mr-2"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                  }}
+                />
+                <span>{league.name}</span>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };

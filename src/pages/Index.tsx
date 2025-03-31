@@ -12,9 +12,10 @@ import { generateICS } from '@/utils/icsGenerator';
 import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
-  const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
+  // Set default league to "eredivisie"
+  const [selectedLeague, setSelectedLeague] = useState<string | null>("eredivisie");
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  const [filteredTeams, setFilteredTeams] = useState(teams);
+  const [filteredTeams, setFilteredTeams] = useState(teams.filter(team => team.leagueId === "eredivisie"));
   const [matches, setMatches] = useState<any[]>([]);
   const [teamName, setTeamName] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -101,16 +102,15 @@ const Index = () => {
     <div className="min-h-screen flex flex-col football-container">
       <Header />
       
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <section className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Voetbalwedstrijden in je agenda</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+      <main className="flex-grow container mx-auto px-4 py-6">
+        <section className="text-center mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Voetbalwedstrijden in je agenda</h1>
+          <p className="text-md text-gray-600">
             Selecteer je favoriete club en download hun wedstrijdschema direct naar je agenda.
-            Compatibel met Apple Agenda, Google Agenda, en meer.
           </p>
         </section>
 
-        <section className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-8">
+        <section className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-4 mb-6">
           <LeagueSelector 
             leagues={leagues} 
             selectedLeague={selectedLeague} 
@@ -125,7 +125,7 @@ const Index = () => {
         </section>
 
         {isLoading ? (
-          <section className="max-w-6xl mx-auto mb-8 text-center p-8">
+          <section className="max-w-md mx-auto mb-6 text-center p-6">
             <div className="animate-pulse flex flex-col items-center">
               <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
               <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
@@ -133,7 +133,7 @@ const Index = () => {
             </div>
           </section>
         ) : selectedTeam && matches.length > 0 ? (
-          <section className="max-w-6xl mx-auto mb-8">
+          <section className="max-w-md mx-auto mb-6">
             <MatchesPreview 
               matches={matches} 
               teamName={teamName} 
@@ -142,23 +142,23 @@ const Index = () => {
           </section>
         ) : null}
 
-        <section className="max-w-4xl mx-auto py-8">
-          <h2 className="text-2xl font-bold mb-4 text-center">Hoe werkt het?</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <div className="w-16 h-16 bg-sport-blue text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">1</div>
-              <h3 className="text-lg font-semibold mb-2">Selecteer je club</h3>
-              <p className="text-gray-600">Kies je favoriete voetbalclub uit de lijst van beschikbare teams per competitie.</p>
+        <section className="max-w-md mx-auto py-6">
+          <h2 className="text-xl font-bold mb-4 text-center">Hoe werkt het?</h2>
+          <div className="space-y-4">
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <div className="w-8 h-8 bg-sport-blue text-white rounded-full flex items-center justify-center mx-auto mb-2 text-md font-bold">1</div>
+              <h3 className="text-md font-semibold mb-1 text-center">Selecteer je club</h3>
+              <p className="text-sm text-gray-600 text-center">Kies je favoriete voetbalclub uit de lijst van beschikbare teams per competitie.</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <div className="w-16 h-16 bg-sport-blue text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">2</div>
-              <h3 className="text-lg font-semibold mb-2">Bekijk de wedstrijden</h3>
-              <p className="text-gray-600">Bekijk alle aankomende wedstrijden van je gekozen club.</p>
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <div className="w-8 h-8 bg-sport-blue text-white rounded-full flex items-center justify-center mx-auto mb-2 text-md font-bold">2</div>
+              <h3 className="text-md font-semibold mb-1 text-center">Bekijk de wedstrijden</h3>
+              <p className="text-sm text-gray-600 text-center">Bekijk alle aankomende wedstrijden van je gekozen club.</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <div className="w-16 h-16 bg-sport-blue text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">3</div>
-              <h3 className="text-lg font-semibold mb-2">Download naar agenda</h3>
-              <p className="text-gray-600">Download het wedstrijdschema en importeer het in je favoriete agenda-app.</p>
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <div className="w-8 h-8 bg-sport-blue text-white rounded-full flex items-center justify-center mx-auto mb-2 text-md font-bold">3</div>
+              <h3 className="text-md font-semibold mb-1 text-center">Download naar agenda</h3>
+              <p className="text-sm text-gray-600 text-center">Download het wedstrijdschema en importeer het in je favoriete agenda-app.</p>
             </div>
           </div>
         </section>
