@@ -20,8 +20,8 @@ const LeagueSelector: React.FC<LeagueSelectorProps> = ({ leagues, selectedLeague
   const isMobile = useIsMobile();
   
   const handleLeagueChange = (value: string) => {
-    // If empty string is selected, it means "All leagues"
-    onLeagueSelect(value);
+    // If "all_leagues" is selected, it means "All leagues"
+    onLeagueSelect(value === "all_leagues" ? "" : value);
   };
 
   // Find the currently selected league name or use "Alle competities" as default
@@ -33,7 +33,7 @@ const LeagueSelector: React.FC<LeagueSelectorProps> = ({ leagues, selectedLeague
     <div className="mb-6">
       <h2 className="text-lg font-semibold mb-2">Selecteer een competitie</h2>
       <Select 
-        value={selectedLeague || ""} 
+        value={selectedLeague || "all_leagues"} 
         onValueChange={handleLeagueChange}
         defaultValue="eredivisie"
       >
@@ -43,7 +43,7 @@ const LeagueSelector: React.FC<LeagueSelectorProps> = ({ leagues, selectedLeague
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Alle competities</SelectItem>
+          <SelectItem value="all_leagues" className="flex items-center">Alle competities</SelectItem>
           {leagues.map((league) => (
             <SelectItem key={league.id} value={league.id} className="flex items-center">
               <div className="flex items-center gap-2">
