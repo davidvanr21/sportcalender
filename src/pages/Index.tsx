@@ -7,7 +7,7 @@ import TeamSelector from '@/components/TeamSelector';
 import MatchesPreview from '@/components/MatchesPreview';
 import { leagues } from '@/data/leagues';
 import { teams } from '@/data/teams';
-import { getMatchesForTeam } from '@/data/matches';
+import { getMatchesForTeam, getMatchesForTeamSync } from '@/data/matches';
 import { generateICS } from '@/utils/icsGenerator';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -17,6 +17,7 @@ const Index = () => {
   const [filteredTeams, setFilteredTeams] = useState(teams);
   const [matches, setMatches] = useState<any[]>([]);
   const [teamName, setTeamName] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Filter teams based on selected league
@@ -24,26 +25,44 @@ const Index = () => {
     if (selectedLeague) {
       const teamsInLeague = teams.filter(team => team.leagueId === selectedLeague);
       setFilteredTeams(teamsInLeague);
-      // Reset selected team when changing leagues
-      setSelectedTeam(null);
-      setMatches([]);
+    } else {
+      // If no league is selected, show all teams
+      setFilteredTeams(teams);
     }
+    // Reset selected team when changing leagues
+    setSelectedTeam(null);
+    setMatches([]);
   }, [selectedLeague]);
 
   // Load matches when a team is selected
   useEffect(() => {
     if (selectedTeam) {
-      const teamData = teams.find(team => team.id === selectedTeam);
-      if (teamData) {
-        setTeamName(teamData.name);
-        const teamMatches = getMatchesForTeam(teamData.name);
-        setMatches(teamMatches);
-      }
+      const fetchMatches = async () => {
+        setIsLoading(true);
+        const teamData = teams.find(team => team.id === selectedTeam);
+        
+        if (teamData) {
+          setTeamName(teamData.name);
+          try {
+            // Try to fetch matches asynchronously first
+            const teamMatches = await getMatchesForTeam(teamData.name);
+            setMatches(teamMatches);
+          } catch (error) {
+            console.error("Error fetching matches, using fallback:", error);
+            // Fallback to synchronous method if async fails
+            const fallbackMatches = getMatchesForTeamSync(teamData.name);
+            setMatches(fallbackMatches);
+          }
+        }
+        setIsLoading(false);
+      };
+      
+      fetchMatches();
     }
   }, [selectedTeam]);
 
   const handleLeagueSelect = (leagueId: string) => {
-    setSelectedLeague(leagueId);
+    setSelectedLeague(leagueId || null);
   };
 
   const handleTeamSelect = (teamId: string) => {
@@ -105,7 +124,15 @@ const Index = () => {
           />
         </section>
 
-        {selectedTeam && matches.length > 0 && (
+        {isLoading ? (
+          <section className="max-w-6xl mx-auto mb-8 text-center p-8">
+            <div className="animate-pulse flex flex-col items-center">
+              <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+            </div>
+          </section>
+        ) : selectedTeam && matches.length > 0 ? (
           <section className="max-w-6xl mx-auto mb-8">
             <MatchesPreview 
               matches={matches} 
@@ -113,7 +140,7 @@ const Index = () => {
               onDownload={handleDownloadCalendar} 
             />
           </section>
-        )}
+        ) : null}
 
         <section className="max-w-4xl mx-auto py-8">
           <h2 className="text-2xl font-bold mb-4 text-center">Hoe werkt het?</h2>

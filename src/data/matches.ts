@@ -1,11 +1,18 @@
 
 import { Match } from "../types";
+import { fetchMatchesForTeam } from "../services/footballApiService";
 
-// Generate matches for the next 6 months
-const generateMatches = (teamId: string): Match[] => {
-  const competitions = ["Competitie", "Champions League", "Europa League", "Beker"];
+// Function to get matches for a specific team
+export const getMatchesForTeam = async (teamName: string): Promise<Match[]> => {
+  return await fetchMatchesForTeam(teamName);
+};
+
+// Fallback for non-async contexts
+export const getMatchesForTeamSync = (teamName: string): Match[] => {
+  console.log("Using synchronous fallback for team matches");
+  const competitions = ["Eredivisie", "KNVB Beker", "Champions League", "Europa League"];
   const venues = ["Thuis", "Uit"];
-  const teams = ["Team A", "Team B", "Team C", "Team D", "Team E", "Team F"];
+  const teams = ["Ajax Amsterdam", "PSV Eindhoven", "Feyenoord Rotterdam", "AZ Alkmaar"];
   const matches: Match[] = [];
   
   // Current date
@@ -19,11 +26,12 @@ const generateMatches = (teamId: string): Match[] => {
     
     const isHome = Math.random() > 0.5;
     const opponentIndex = Math.floor(Math.random() * teams.length);
+    const opponent = teams[opponentIndex] === teamName ? teams[(opponentIndex + 1) % teams.length] : teams[opponentIndex];
     
     matches.push({
-      id: `match-${teamId}-${i}`,
-      homeTeam: isHome ? teamId : teams[opponentIndex],
-      awayTeam: isHome ? teams[opponentIndex] : teamId,
+      id: `match-${teamName}-${i}`,
+      homeTeam: isHome ? teamName : opponent,
+      awayTeam: isHome ? opponent : teamName,
       date: matchDate.toISOString(),
       competition: competitions[Math.floor(Math.random() * competitions.length)],
       venue: isHome ? "Thuis" : "Uit",
@@ -32,9 +40,4 @@ const generateMatches = (teamId: string): Match[] => {
   
   // Sort matches by date
   return matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-};
-
-// Function to get matches for a specific team
-export const getMatchesForTeam = (teamId: string): Match[] => {
-  return generateMatches(teamId);
 };

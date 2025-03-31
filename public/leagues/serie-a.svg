@@ -1,2 +1,9 @@
 
-⚠️ This is a placeholder for the Serie A logo SVG.
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" fill="none">
+  <rect width="300" height="300" rx="10" fill="#024494"/>
+  <circle cx="150" cy="150" r="100" fill="white"/>
+  <path d="M75 150H225" stroke="#024494" stroke-width="15"/>
+  <path d="M100 120H200" stroke="#024494" stroke-width="10"/>
+  <path d="M100 180H200" stroke="#024494" stroke-width="10"/>
+  <text x="150" y="165" text-anchor="middle" font-size="50" font-family="Arial, sans-serif" font-weight="bold" fill="#024494">SERIE A</text>
+</svg>

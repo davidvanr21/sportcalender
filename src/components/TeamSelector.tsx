@@ -10,7 +10,7 @@ interface TeamSelectorProps {
 
 const TeamSelector: React.FC<TeamSelectorProps> = ({ teams, selectedTeam, onTeamSelect }) => {
   if (teams.length === 0) {
-    return <p className="text-center text-gray-500">Selecteer eerst een competitie</p>;
+    return <p className="text-center text-gray-500">Geen teams gevonden. Selecteer een competitie of deselecteer voor alle teams.</p>;
   }
 
   return (

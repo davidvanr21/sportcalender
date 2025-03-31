@@ -1,2 +1,7 @@
 
-⚠️ This is a placeholder for the Arsenal logo SVG.
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" fill="none">
+  <circle cx="150" cy="150" r="140" fill="#EF0107"/>
+  <path d="M75 150H225M150 75V225" stroke="white" stroke-width="20"/>
+  <path d="M150 95C170.5 95 187 111.5 187 132C187 152.5 170.5 169 150 169C129.5 169 113 152.5 113 132C113 111.5 129.5 95 150 95Z" stroke="white" stroke-width="10" fill="#EF0107"/>
+  <path d="M130 180L150 210L170 180" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

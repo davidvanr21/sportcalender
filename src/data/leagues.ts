@@ -38,10 +38,4 @@ export const leagues: League[] = [
     country: "Nederland",
     logo: "/leagues/eredivisie.svg",
   },
-  {
-    id: "primeira-liga",
-    name: "Primeira Liga",
-    country: "Portugal",
-    logo: "/leagues/primeira-liga.svg",
-  },
 ];

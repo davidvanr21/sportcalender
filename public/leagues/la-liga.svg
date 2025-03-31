@@ -1,2 +1,9 @@
 
-⚠️ This is a placeholder for the La Liga logo SVG.
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" fill="none">
+  <rect width="300" height="300" rx="10" fill="white"/>
+  <path d="M50 50H250V250H50V50Z" fill="#002D62"/>
+  <path d="M105 75L75 225H95L125 75H105Z" fill="white"/>
+  <path d="M145 75L115 225H135L165 75H145Z" fill="white"/>
+  <path d="M185 75L155 225H175L205 75H185Z" fill="white"/>
+  <path d="M225 75L195 225H215L245 75H225Z" fill="white"/>
+</svg>
