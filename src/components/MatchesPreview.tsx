@@ -4,14 +4,17 @@ import { Match } from '../types';
 import { Button } from '@/components/ui/button';
 import { Calendar, Download, ChevronDown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 
 interface MatchesPreviewProps {
   matches: Match[];
   teamName: string;
   onDownload: () => void;
+  isLoading: boolean;
 }
 
-const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDownload }) => {
+const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDownload, isLoading }) => {
   const isMobile = useIsMobile();
   const [showAllMatches, setShowAllMatches] = useState(false);
   
@@ -46,6 +49,29 @@ const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDo
     displayMatchesByMonth[monthYear].push(match);
   });
 
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-6">
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-4 w-1/3" />
+          <div className="flex flex-col gap-2">
+            <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+              <Progress value={75} className="h-2" />
+            </div>
+            <p className="text-xs text-gray-500 text-center">Matches ophalen...</p>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
       <div className="flex flex-col gap-4 mb-6">
@@ -63,39 +89,46 @@ const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDo
         </Button>
       </div>
       
-      <div className="space-y-6">
-        {Object.entries(displayMatchesByMonth).map(([monthYear, monthMatches]) => (
-          <div key={monthYear}>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-1">{monthYear}</h3>
-            <div className="space-y-3">
-              {monthMatches.map(match => {
-                const date = new Date(match.date);
-                const isHome = match.homeTeam === teamName;
-                const opponent = isHome ? match.awayTeam : match.homeTeam;
-                
-                return (
-                  <div key={match.id} className="flex flex-col sm:flex-row sm:items-center p-3 rounded-md hover:bg-gray-50 border border-gray-100">
-                    <div className="flex items-center mb-1 sm:mb-0">
-                      <div className="w-16 text-sm text-gray-600 font-medium">
-                        {date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+      {matches.length === 0 ? (
+        <div className="text-center p-6 bg-gray-50 rounded-md">
+          <p className="text-gray-500 mb-2">Geen wedstrijden gevonden</p>
+          <p className="text-sm text-gray-400">Er zijn momenteel geen wedstrijden beschikbaar voor dit team.</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {Object.entries(displayMatchesByMonth).map(([monthYear, monthMatches]) => (
+            <div key={monthYear}>
+              <h3 className="text-lg font-semibold mb-3 border-b pb-1">{monthYear}</h3>
+              <div className="space-y-3">
+                {monthMatches.map(match => {
+                  const date = new Date(match.date);
+                  const isHome = match.homeTeam === teamName;
+                  const opponent = isHome ? match.awayTeam : match.homeTeam;
+                  
+                  return (
+                    <div key={match.id} className="flex flex-col sm:flex-row sm:items-center p-3 rounded-md hover:bg-gray-50 border border-gray-100">
+                      <div className="flex items-center mb-1 sm:mb-0">
+                        <div className="w-16 text-sm text-gray-600 font-medium">
+                          {date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+                        </div>
+                        <div className="w-16 text-sm text-gray-600">
+                          {date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
                       </div>
-                      <div className="w-16 text-sm text-gray-600">
-                        {date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
+                      <div className="flex-grow font-medium mb-1 sm:mb-0">
+                        {isHome ? teamName : opponent} vs {isHome ? opponent : teamName}
+                      </div>
+                      <div className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 self-start sm:self-auto">
+                        {match.competition}
                       </div>
                     </div>
-                    <div className="flex-grow font-medium mb-1 sm:mb-0">
-                      {isHome ? teamName : opponent} vs {isHome ? opponent : teamName}
-                    </div>
-                    <div className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 self-start sm:self-auto">
-                      {match.competition}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
       
       {matches.length > 5 && (
         <div className="mt-4 text-center">

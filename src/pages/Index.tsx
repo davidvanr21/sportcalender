@@ -40,21 +40,32 @@ const Index = () => {
     if (selectedTeam) {
       const fetchMatches = async () => {
         setIsLoading(true);
+        console.log(`🏁 Starting match fetch process for team ID: ${selectedTeam}`);
+        
         const teamData = teams.find(team => team.id === selectedTeam);
         
         if (teamData) {
           setTeamName(teamData.name);
+          console.log(`📋 Fetching matches for team: ${teamData.name}`);
+          
           try {
             // Try to fetch matches asynchronously first
+            console.log(`🔄 Calling getMatchesForTeam API service`);
             const teamMatches = await getMatchesForTeam(teamData.name);
+            console.log(`✅ API call complete. Got ${teamMatches.length} matches`);
             setMatches(teamMatches);
           } catch (error) {
-            console.error("Error fetching matches, using fallback:", error);
+            console.error("❌ Error in match fetching process:", error);
+            console.log(`⚠️ Using fallback data generation method`);
             // Fallback to synchronous method if async fails
             const fallbackMatches = getMatchesForTeamSync(teamData.name);
             setMatches(fallbackMatches);
           }
+        } else {
+          console.error(`❌ Could not find team with ID: ${selectedTeam}`);
         }
+        
+        console.log(`🏁 Match fetching process completed`);
         setIsLoading(false);
       };
       
@@ -124,23 +135,16 @@ const Index = () => {
           />
         </section>
 
-        {isLoading ? (
-          <section className="max-w-md mx-auto mb-6 text-center p-6">
-            <div className="animate-pulse flex flex-col items-center">
-              <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-            </div>
-          </section>
-        ) : selectedTeam && matches.length > 0 ? (
+        {selectedTeam && (
           <section className="max-w-md mx-auto mb-6">
             <MatchesPreview 
               matches={matches} 
               teamName={teamName} 
-              onDownload={handleDownloadCalendar} 
+              onDownload={handleDownloadCalendar}
+              isLoading={isLoading} 
             />
           </section>
-        ) : null}
+        )}
 
         <section className="max-w-md mx-auto py-6">
           <h2 className="text-xl font-bold mb-4 text-center">Hoe werkt het?</h2>
