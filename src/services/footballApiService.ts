@@ -1,31 +1,19 @@
+
 import { Match } from "../types";
 
-// Sportmonks API credentials
-const API_KEY = "WuKof3UMKQxjepACx50Lx62Z7yiV9THJ87QGITx0ob8GL8sfJBDUEnuZiwp9";
-const API_URL = "https://api.sportmonks.com/v3";
+// TheSportsDB API information
+const API_URL = "https://www.thesportsdb.com/api/v1/json/3";
 
 // Function to fetch upcoming Eredivisie matches
 export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
   try {
-    console.log("📋 Starting API process for Eredivisie matches...");
+    console.log("📋 Starting API process for Eredivisie matches from TheSportsDB...");
     
-    // Eredivisie league ID in SportMonks API
-    const eredivisieLeagueId = 1; // This is the ID for Eredivisie in Sportmonks
+    // Eredivisie league ID in TheSportsDB is 4337
+    const eredivisieLeagueId = 4337;
     
-    // Get current season ID - typically the one with the latest start date
-    console.log(`🔍 Step 1: Getting current Eredivisie season`);
-    const seasonId = await getCurrentEredivisieSeason();
-    
-    if (!seasonId) {
-      console.error("❌ Could not determine current Eredivisie season");
-      return generateSampleMatches(); // Fallback
-    }
-    
-    console.log(`✅ Found current Eredivisie season ID: ${seasonId}`);
-    console.log(`🔍 Step 2: Fetching Eredivisie fixtures`);
-    
-    // Get upcoming fixtures
-    const fixtures = await fetchEredivisieFixtures(seasonId);
+    console.log(`🔍 Fetching Eredivisie fixtures from TheSportsDB`);
+    const fixtures = await fetchLeagueMatches(eredivisieLeagueId);
     
     if (fixtures.length === 0) {
       console.log(`⚠️ No fixtures found, generating sample data`);
@@ -40,91 +28,45 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
   }
 };
 
-// Helper to get current season ID for Eredivisie
-const getCurrentEredivisieSeason = async (): Promise<number | null> => {
+// Helper to fetch league matches from TheSportsDB
+const fetchLeagueMatches = async (leagueId: number): Promise<Match[]> => {
   try {
-    const url = `${API_URL}/football/leagues/1?include=currentSeason`;
+    // The league endpoint for upcoming events
+    const url = `${API_URL}/eventsnextleague.php?id=${leagueId}`;
     console.log(`📡 API Request: ${url}`);
     
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `${API_KEY}`
-      }
-    });
+    const response = await fetch(url);
     
-    const data = await response.json();
-    console.log(`📊 API Response for league:`, data);
-    
-    if (data.data?.currentSeason?.id) {
-      return data.data.currentSeason.id;
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    
-    // Fallback: get seasons and pick most recent
-    const seasonsUrl = `${API_URL}/football/leagues/1/seasons`;
-    const seasonsResponse = await fetch(seasonsUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `${API_KEY}`
-      }
-    });
-    
-    const seasonsData = await seasonsResponse.json();
-    
-    if (seasonsData.data && seasonsData.data.length > 0) {
-      // Sort by start date descending and take first
-      const sortedSeasons = seasonsData.data.sort((a: any, b: any) => {
-        return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
-      });
-      return sortedSeasons[0].id;
-    }
-    
-    return null;
-  } catch (error) {
-    console.error("❌ Error getting current season:", error);
-    return null;
-  }
-};
-
-// Helper to fetch Eredivisie fixtures
-const fetchEredivisieFixtures = async (seasonId: number): Promise<Match[]> => {
-  try {
-    const currentDate = new Date().toISOString().split('T')[0]; // Today's date in YYYY-MM-DD
-    const url = `${API_URL}/football/fixtures?filters[league_id]=1&filters[season_id]=${seasonId}&filters[date_from]=${currentDate}&include=participants;venue&sort=starting_at`;
-    console.log(`📡 API Request: ${url}`);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `${API_KEY}`
-      }
-    });
     
     const data = await response.json();
     console.log(`📊 API Response for fixtures:`, data);
     
-    if (!data.data) {
-      throw new Error("Invalid API response");
+    if (!data.events || data.events.length === 0) {
+      console.log("No events found in API response");
+      return [];
     }
     
-    // Map API data to our Match format
-    return data.data.map((fixture: any) => ({
-      id: fixture.id.toString(),
-      homeTeam: fixture.participants?.find((p: any) => p.meta.location === 'home')?.name || "Unknown Team",
-      awayTeam: fixture.participants?.find((p: any) => p.meta.location === 'away')?.name || "Unknown Team",
-      date: fixture.starting_at || new Date().toISOString(),
+    // Map TheSportsDB data to our Match format
+    return data.events.map((event: any) => ({
+      id: event.idEvent,
+      homeTeam: event.strHomeTeam,
+      awayTeam: event.strAwayTeam,
+      date: new Date(`${event.dateEvent} ${event.strTime || '20:00:00'}`).toISOString(),
       competition: "Eredivisie",
-      venue: fixture.venue?.name || "Unknown Venue",
-      status: fixture.status || "Not Started",
+      venue: event.strVenue || "Unknown Venue",
+      status: event.strStatus || "Not Started",
     }));
   } catch (error) {
-    console.error("❌ Error fetching fixtures:", error);
+    console.error("❌ Error fetching league fixtures:", error);
     return [];
   }
 };
 
 // Helper for generating sample matches as fallback
-const generateSampleMatches = (): Match[] => {
+const generateSampleMatches = (): Promise<Match[]> => {
   console.log("🔄 Generating sample Eredivisie matches");
   
   const eredivisieTeams = [
@@ -170,66 +112,59 @@ const generateSampleMatches = (): Match[] => {
   }
   
   // Sort matches by date
-  return matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  return Promise.resolve(matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
 };
 
 // Function to fetch matches for a specific team
 export const fetchMatchesForTeam = async (teamName: string): Promise<Match[]> => {
   try {
-    console.log(`📋 Starting API process for ${teamName}...`);
+    console.log(`📋 Starting API process for ${teamName} from TheSportsDB...`);
     
-    // First get the team ID from the API
-    console.log(`🔍 Step 1: Looking up team ID for "${teamName}"`);
-    const teamData = await fetchTeamId(teamName);
+    // First lookup the team ID
+    console.log(`🔍 Looking up team ID for "${teamName}"`);
+    const teamId = await fetchTeamId(teamName);
     
-    if (!teamData) {
+    if (!teamId) {
       console.error(`❌ Team "${teamName}" not found in API`);
-      console.log(`⚠️ Falling back to generated data`);
       return generateMatchesForTeam(teamName); // Fallback
     }
     
     // Then fetch fixtures for that team
-    console.log(`✅ Team found! ID: ${teamData.id}, Name: ${teamData.name}`);
-    console.log(`🔍 Step 2: Fetching fixtures for team ID ${teamData.id}`);
+    console.log(`✅ Team found! ID: ${teamId}`);
+    console.log(`🔍 Fetching fixtures for team ID ${teamId}`);
     
-    const fixtures = await fetchFixtures(teamData.id);
+    const fixtures = await fetchTeamMatches(teamId);
     
     if (fixtures.length === 0) {
       console.log(`⚠️ No fixtures found, falling back to generated data`);
       return generateMatchesForTeam(teamName); // Fallback if no fixtures
     }
     
-    console.log(`✅ Success! Found ${fixtures.length} upcoming matches`);
+    console.log(`✅ Success! Found ${fixtures.length} upcoming matches for ${teamName}`);
     return fixtures;
   } catch (error) {
     console.error("❌ Error in fetch process:", error);
-    console.log(`⚠️ Falling back to generated data due to error`);
     return generateMatchesForTeam(teamName); // Fallback to generated data
   }
 };
 
 // Helper function to get team ID from name
-const fetchTeamId = async (teamName: string) => {
+const fetchTeamId = async (teamName: string): Promise<string | null> => {
   try {
-    // Search for the team by name
-    const url = `${API_URL}/football/teams/search/${encodeURIComponent(teamName)}`;
+    const url = `${API_URL}/searchteams.php?t=${encodeURIComponent(teamName)}`;
     console.log(`📡 API Request: ${url}`);
     
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `${API_KEY}`
-      }
-    });
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
     
     const data = await response.json();
     console.log(`📊 API Response for team lookup:`, data);
     
-    if (data.data && data.data.length > 0) {
-      return {
-        id: data.data[0].id,
-        name: data.data[0].name
-      };
+    if (data.teams && data.teams.length > 0) {
+      return data.teams[0].idTeam;
     }
     return null;
   } catch (error) {
@@ -238,39 +173,38 @@ const fetchTeamId = async (teamName: string) => {
   }
 };
 
-// Helper function to fetch fixtures
-const fetchFixtures = async (teamId: number): Promise<Match[]> => {
+// Helper function to fetch team matches
+const fetchTeamMatches = async (teamId: string): Promise<Match[]> => {
   try {
-    // Get upcoming fixtures for the team
-    const currentDate = new Date().toISOString().split('T')[0]; // Today's date in YYYY-MM-DD format
-    const url = `${API_URL}/football/fixtures/byTeamId/${teamId}?filters=fixtureStartsAt:${currentDate}`;
+    const url = `${API_URL}/eventsnext.php?id=${teamId}`;
     console.log(`📡 API Request: ${url}`);
     
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `${API_KEY}`
-      }
-    });
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
     
     const data = await response.json();
-    console.log(`📊 API Response for fixtures:`, data);
+    console.log(`📊 API Response for team matches:`, data);
     
-    if (!data.data) {
-      throw new Error("Invalid API response");
+    if (!data.events || data.events.length === 0) {
+      console.log("No events found in API response");
+      return [];
     }
     
     // Map API data to our Match format
-    return data.data.map((fixture: any) => ({
-      id: fixture.id.toString(),
-      homeTeam: fixture.participants.find((p: any) => p.meta.location === 'home')?.name || "Unknown Team",
-      awayTeam: fixture.participants.find((p: any) => p.meta.location === 'away')?.name || "Unknown Team",
-      date: fixture.starting_at || new Date().toISOString(), // Default to now if no date
-      competition: fixture.league?.name || "Unknown League",
-      venue: fixture.venue?.name || "Unknown Venue",
+    return data.events.map((event: any) => ({
+      id: event.idEvent,
+      homeTeam: event.strHomeTeam,
+      awayTeam: event.strAwayTeam,
+      date: new Date(`${event.dateEvent} ${event.strTime || '20:00:00'}`).toISOString(),
+      competition: event.strLeague || "Unknown League",
+      venue: event.strVenue || "Unknown Venue",
+      status: event.strStatus || "Scheduled",
     }));
   } catch (error) {
-    console.error("❌ Error fetching fixtures:", error);
+    console.error("❌ Error fetching team fixtures:", error);
     return [];
   }
 };
