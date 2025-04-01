@@ -1,8 +1,9 @@
+
 import { Match } from "../types";
 
-// Football API credentials
-const API_KEY = "86a4fba1542ddddc8f7e57215aa37c52";
-const API_URL = "https://v3.football.api-sports.io";
+// Sportmonks API credentials
+const API_KEY = "WuKof3UMKQxjepACx50Lx62Z7yiV9THJ87QGITx0ob8GL8sfJBDUEnuZiwp9";
+const API_URL = "https://api.sportmonks.com/v3";
 
 // Function to fetch matches for a specific team
 export const fetchMatchesForTeam = async (teamName: string): Promise<Match[]> => {
@@ -42,24 +43,24 @@ export const fetchMatchesForTeam = async (teamName: string): Promise<Match[]> =>
 // Helper function to get team ID from name
 const fetchTeamId = async (teamName: string) => {
   try {
-    // Using 2023 season instead of 2024 (free plan limitation)
-    const url = `${API_URL}/teams?name=${encodeURIComponent(teamName)}&league=88&season=2023`;
+    // Search for the team by name
+    const url = `${API_URL}/football/teams/search/${encodeURIComponent(teamName)}`;
     console.log(`📡 API Request: ${url}`);
     
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'x-apisports-key': API_KEY
+        'Authorization': `${API_KEY}`
       }
     });
     
     const data = await response.json();
     console.log(`📊 API Response for team lookup:`, data);
     
-    if (data.response && data.response.length > 0) {
+    if (data.data && data.data.length > 0) {
       return {
-        id: data.response[0].team.id,
-        name: data.response[0].team.name
+        id: data.data[0].id,
+        name: data.data[0].name
       };
     }
     return null;
@@ -72,32 +73,33 @@ const fetchTeamId = async (teamName: string) => {
 // Helper function to fetch fixtures
 const fetchFixtures = async (teamId: number): Promise<Match[]> => {
   try {
-    // Using 2023 season instead of 2024 (free plan limitation)
-    const url = `${API_URL}/fixtures?team=${teamId}&league=88&season=2023&status=NS`;
+    // Get upcoming fixtures for the team
+    const currentDate = new Date().toISOString().split('T')[0]; // Today's date in YYYY-MM-DD format
+    const url = `${API_URL}/football/fixtures/byTeamId/${teamId}?filters=fixtureStartsAt:${currentDate}`;
     console.log(`📡 API Request: ${url}`);
     
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'x-apisports-key': API_KEY
+        'Authorization': `${API_KEY}`
       }
     });
     
     const data = await response.json();
     console.log(`📊 API Response for fixtures:`, data);
     
-    if (!data.response) {
+    if (!data.data) {
       throw new Error("Invalid API response");
     }
     
     // Map API data to our Match format
-    return data.response.map((fixture: any) => ({
-      id: fixture.fixture.id.toString(),
-      homeTeam: fixture.teams.home.name,
-      awayTeam: fixture.teams.away.name,
-      date: fixture.fixture.date, // ISO string
-      competition: "Eredivisie",
-      venue: fixture.fixture.venue?.name || "Stadium",
+    return data.data.map((fixture: any) => ({
+      id: fixture.id.toString(),
+      homeTeam: fixture.participants.find((p: any) => p.meta.location === 'home')?.name || "Unknown Team",
+      awayTeam: fixture.participants.find((p: any) => p.meta.location === 'away')?.name || "Unknown Team",
+      date: fixture.starting_at || new Date().toISOString(), // Default to now if no date
+      competition: fixture.league?.name || "Unknown League",
+      venue: fixture.venue?.name || "Unknown Venue",
     }));
   } catch (error) {
     console.error("❌ Error fetching fixtures:", error);

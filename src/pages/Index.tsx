@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -12,7 +11,7 @@ import { generateICS } from '@/utils/icsGenerator';
 import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
-  // Set default league to "eredivisie"
+  // Set default league to "eredivisie" and make it fixed
   const [selectedLeague, setSelectedLeague] = useState<string | null>("eredivisie");
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [filteredTeams, setFilteredTeams] = useState(teams.filter(team => team.leagueId === "eredivisie"));
@@ -21,15 +20,10 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
-  // Filter teams based on selected league
+  // Filter teams based on selected league - now always "eredivisie"
   useEffect(() => {
-    if (selectedLeague) {
-      const teamsInLeague = teams.filter(team => team.leagueId === selectedLeague);
-      setFilteredTeams(teamsInLeague);
-    } else {
-      // If no league is selected, show all teams
-      setFilteredTeams(teams);
-    }
+    const teamsInLeague = teams.filter(team => team.leagueId === "eredivisie");
+    setFilteredTeams(teamsInLeague);
     // Reset selected team when changing leagues
     setSelectedTeam(null);
     setMatches([]);
@@ -74,7 +68,8 @@ const Index = () => {
   }, [selectedTeam]);
 
   const handleLeagueSelect = (leagueId: string) => {
-    setSelectedLeague(leagueId || null);
+    // League selection is now disabled, but keeping the handler for future use
+    setSelectedLeague("eredivisie");
   };
 
   const handleTeamSelect = (teamId: string) => {

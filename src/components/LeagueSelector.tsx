@@ -36,6 +36,7 @@ const LeagueSelector: React.FC<LeagueSelectorProps> = ({ leagues, selectedLeague
         value={selectedLeague || "all_leagues"} 
         onValueChange={handleLeagueChange}
         defaultValue="eredivisie"
+        disabled={true}
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Kies een competitie">
