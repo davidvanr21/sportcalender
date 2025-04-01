@@ -18,8 +18,8 @@ const ApiCheck: React.FC = () => {
     queryFn: fetchUpcomingEredivisieMatches,
   });
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {(error as Error).message}</div>;
+  if (isLoading) return <div className="flex justify-center items-center h-screen">Loading Eredivisie matches...</div>;
+  if (error) return <div className="flex justify-center items-center h-screen">Error: {(error as Error).message}</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -43,7 +43,7 @@ const ApiCheck: React.FC = () => {
       {showJson && matches && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>JSON Data</CardTitle>
+            <CardTitle>Eredivisie JSON Data</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="bg-gray-900 text-gray-100 p-4 rounded-md overflow-auto max-h-96">
@@ -56,7 +56,7 @@ const ApiCheck: React.FC = () => {
       {matches && matches.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Wedstrijden Data</CardTitle>
+            <CardTitle>Eredivisie Wedstrijden</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -67,6 +67,7 @@ const ApiCheck: React.FC = () => {
                   <TableHead>Uitteam</TableHead>
                   <TableHead>Stadion</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Competitie</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -77,6 +78,7 @@ const ApiCheck: React.FC = () => {
                     <TableCell>{match.awayTeam}</TableCell>
                     <TableCell>{match.venue}</TableCell>
                     <TableCell>{match.status || 'Onbekend'}</TableCell>
+                    <TableCell>{match.competition}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -84,7 +86,10 @@ const ApiCheck: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div>Geen wedstrijden gevonden</div>
+        <div className="text-center p-8 bg-gray-100 rounded-lg">
+          <p className="text-xl font-medium">Geen Eredivisie wedstrijden gevonden</p>
+          <p className="text-gray-500 mt-2">Er zijn momenteel geen aankomende Eredivisie wedstrijden beschikbaar.</p>
+        </div>
       )}
     </div>
   );

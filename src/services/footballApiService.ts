@@ -49,8 +49,17 @@ const fetchLeagueMatches = async (leagueId: number): Promise<Match[]> => {
       return [];
     }
     
+    // Filter events to ensure they're from Eredivisie only
+    const eredivisieEvents = data.events.filter((event: any) => {
+      // Check if the event belongs to Eredivisie
+      // Either by checking the league name or ID if available
+      return event.strLeague === "Eredivisie" || event.idLeague === "4337";
+    });
+    
+    console.log(`Found ${eredivisieEvents.length} Eredivisie events after filtering`);
+    
     // Map TheSportsDB data to our Match format
-    return data.events.map((event: any) => ({
+    return eredivisieEvents.map((event: any) => ({
       id: event.idEvent,
       homeTeam: event.strHomeTeam,
       awayTeam: event.strAwayTeam,
@@ -140,8 +149,13 @@ export const fetchMatchesForTeam = async (teamName: string): Promise<Match[]> =>
       return generateMatchesForTeam(teamName); // Fallback if no fixtures
     }
     
-    console.log(`✅ Success! Found ${fixtures.length} upcoming matches for ${teamName}`);
-    return fixtures;
+    // Filter fixtures to only include Eredivisie matches
+    const eredivisieFixtures = fixtures.filter(match => 
+      match.competition === "Eredivisie" || match.competition.includes("Eredivisie")
+    );
+    
+    console.log(`✅ Success! Found ${eredivisieFixtures.length} upcoming Eredivisie matches for ${teamName}`);
+    return eredivisieFixtures;
   } catch (error) {
     console.error("❌ Error in fetch process:", error);
     return generateMatchesForTeam(teamName); // Fallback to generated data
@@ -213,7 +227,8 @@ const fetchTeamMatches = async (teamId: string): Promise<Match[]> => {
 const generateMatchesForTeam = (teamName: string): Promise<Match[]> => {
   console.log(`🔄 Generating fallback data for ${teamName}`);
   return Promise.resolve((() => {
-    const competitions = ["Eredivisie", "KNVB Beker", "Champions League", "Europa League"];
+    // Ensure we're only generating Eredivisie fixtures
+    const competitions = ["Eredivisie"];
     const venues = ["Johan Cruijff Arena", "Philips Stadion", "De Kuip", "AFAS Stadion", "Grolsch Veste"];
     const eredivisieTeams = [
       "Ajax Amsterdam", "PSV Eindhoven", "Feyenoord Rotterdam", "AZ Alkmaar", 
@@ -235,18 +250,13 @@ const generateMatchesForTeam = (teamName: string): Promise<Match[]> => {
       const possibleOpponents = eredivisieTeams.filter(team => team !== teamName);
       const opponent = possibleOpponents[Math.floor(Math.random() * possibleOpponents.length)];
       
-      const competition = i < 15 ? "Eredivisie" : competitions[Math.floor(Math.random() * competitions.length)];
-      const venue = isHome ? 
-        venues[Math.floor(Math.random() * venues.length)] :
-        "Uitstadion"; // Generic away stadium
-      
       matches.push({
         id: `match-${teamName}-${i}`,
         homeTeam: isHome ? teamName : opponent,
         awayTeam: isHome ? opponent : teamName,
         date: matchDate.toISOString(),
-        competition: competition,
-        venue: venue,
+        competition: "Eredivisie",
+        venue: isHome ? venues[Math.floor(Math.random() * venues.length)] : "Uitstadion",
       });
     }
     
