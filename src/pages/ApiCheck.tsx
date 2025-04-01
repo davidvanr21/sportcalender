@@ -5,15 +5,16 @@ import { fetchUpcomingEredivisieMatches } from '@/services/footballApiService';
 import { formatDateNL } from '@/utils/dateUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { Match } from '@/types';
 
 const ApiCheck: React.FC = () => {
-  const { data: matches, isLoading, error } = useQuery({
+  const { data: matches, isLoading, error } = useQuery<Match[]>({
     queryKey: ['upcomingEredivisieMatches'],
     queryFn: fetchUpcomingEredivisieMatches,
   });
 
   if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (error) return <div>Error: {(error as Error).message}</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -38,10 +39,10 @@ const ApiCheck: React.FC = () => {
                 {matches.map((match) => (
                   <TableRow key={match.id}>
                     <TableCell>{formatDateNL(new Date(match.date), 'PP HH:mm')}</TableCell>
-                    <TableCell>{match.home_team}</TableCell>
-                    <TableCell>{match.away_team}</TableCell>
+                    <TableCell>{match.homeTeam}</TableCell>
+                    <TableCell>{match.awayTeam}</TableCell>
                     <TableCell>{match.venue}</TableCell>
-                    <TableCell>{match.status}</TableCell>
+                    <TableCell>{match.status || 'Onbekend'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
