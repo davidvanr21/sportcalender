@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -10,6 +11,14 @@ const Footer: React.FC = () => {
           Wij zijn niet geaffilieerd met enige voetbalclub, competitie of organisatie. 
           Alle logo's en merken zijn eigendom van hun respectievelijke eigenaren.
         </p>
+        <div className="mt-4">
+          <Link 
+            to="/api-check" 
+            className="text-blue-600 hover:text-blue-800 hover:underline text-sm"
+          >
+            API Status Controleren
+          </Link>
+        </div>
       </div>
     </footer>
   );
