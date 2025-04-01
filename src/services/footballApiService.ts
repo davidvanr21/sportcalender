@@ -278,43 +278,45 @@ const fetchFixtures = async (teamId: number): Promise<Match[]> => {
 // Helper function to generate sample matches for development/fallback
 const generateMatchesForTeam = (teamName: string): Promise<Match[]> => {
   console.log(`🔄 Generating fallback data for ${teamName}`);
-  const competitions = ["Eredivisie", "KNVB Beker", "Champions League", "Europa League"];
-  const venues = ["Johan Cruijff Arena", "Philips Stadion", "De Kuip", "AFAS Stadion", "Grolsch Veste"];
-  const eredivisieTeams = [
-    "Ajax Amsterdam", "PSV Eindhoven", "Feyenoord Rotterdam", "AZ Alkmaar", 
-    "FC Utrecht", "FC Twente", "Vitesse", "FC Groningen", "SC Heerenveen",
-    "Sparta Rotterdam", "RKC Waalwijk", "NEC Nijmegen", "Go Ahead Eagles",
-    "Fortuna Sittard", "PEC Zwolle", "Heracles Almelo", "Excelsior", "Willem II"
-  ];
-  
-  const matches: Match[] = [];
-  const startDate = new Date();
-  
-  // Generate upcoming matches
-  for (let i = 0; i < 20; i++) {
-    const matchDate = new Date(startDate);
-    matchDate.setDate(startDate.getDate() + Math.floor(Math.random() * 90)); // Next 3 months
+  return Promise.resolve((() => {
+    const competitions = ["Eredivisie", "KNVB Beker", "Champions League", "Europa League"];
+    const venues = ["Johan Cruijff Arena", "Philips Stadion", "De Kuip", "AFAS Stadion", "Grolsch Veste"];
+    const eredivisieTeams = [
+      "Ajax Amsterdam", "PSV Eindhoven", "Feyenoord Rotterdam", "AZ Alkmaar", 
+      "FC Utrecht", "FC Twente", "Vitesse", "FC Groningen", "SC Heerenveen",
+      "Sparta Rotterdam", "RKC Waalwijk", "NEC Nijmegen", "Go Ahead Eagles",
+      "Fortuna Sittard", "PEC Zwolle", "Heracles Almelo", "Excelsior", "Willem II"
+    ];
     
-    const isHome = Math.random() > 0.5;
-    // Remove the current team from possible opponents
-    const possibleOpponents = eredivisieTeams.filter(team => team !== teamName);
-    const opponent = possibleOpponents[Math.floor(Math.random() * possibleOpponents.length)];
+    const matches: Match[] = [];
+    const startDate = new Date();
     
-    const competition = i < 15 ? "Eredivisie" : competitions[Math.floor(Math.random() * competitions.length)];
-    const venue = isHome ? 
-      venues[Math.floor(Math.random() * venues.length)] :
-      "Uitstadion"; // Generic away stadium
+    // Generate upcoming matches
+    for (let i = 0; i < 20; i++) {
+      const matchDate = new Date(startDate);
+      matchDate.setDate(startDate.getDate() + Math.floor(Math.random() * 90)); // Next 3 months
+      
+      const isHome = Math.random() > 0.5;
+      // Remove the current team from possible opponents
+      const possibleOpponents = eredivisieTeams.filter(team => team !== teamName);
+      const opponent = possibleOpponents[Math.floor(Math.random() * possibleOpponents.length)];
+      
+      const competition = i < 15 ? "Eredivisie" : competitions[Math.floor(Math.random() * competitions.length)];
+      const venue = isHome ? 
+        venues[Math.floor(Math.random() * venues.length)] :
+        "Uitstadion"; // Generic away stadium
+      
+      matches.push({
+        id: `match-${teamName}-${i}`,
+        homeTeam: isHome ? teamName : opponent,
+        awayTeam: isHome ? opponent : teamName,
+        date: matchDate.toISOString(),
+        competition: competition,
+        venue: venue,
+      });
+    }
     
-    matches.push({
-      id: `match-${teamName}-${i}`,
-      homeTeam: isHome ? teamName : opponent,
-      awayTeam: isHome ? opponent : teamName,
-      date: matchDate.toISOString(),
-      competition: competition,
-      venue: venue,
-    });
-  }
-  
-  // Sort matches by date
-  return matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // Sort matches by date
+    return matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  })());
 };
