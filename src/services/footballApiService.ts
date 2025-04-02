@@ -1,16 +1,17 @@
 
-import { Match } from "../types";
+import { Match, League } from '../types';
+import { addDays, format } from 'date-fns';
 
-// TheSportsDB API information
+// API URL - using the free Sports DB API
 const API_URL = "https://www.thesportsdb.com/api/v1/json/3";
 
 // Cache for API responses to prevent reload differences
-let cachedEredivisieMatches: Match[] = []; // Changed to direct Match[] array
+let cachedEredivisieMatches: Match[] = []; // Using direct array type
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 let lastFetchTime = 0;
 
-// Function to fetch upcoming Eredivisie matches
-export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
+// Fetch Eredivisie matches
+export const fetchEredivisieMatches = async (): Promise<Match[]> => {
   try {
     // Check if we have cached data that's still fresh
     const now = Date.now();
@@ -19,29 +20,30 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
       return cachedEredivisieMatches;
     }
     
-    console.log("📋 Starting API process for Eredivisie matches from TheSportsDB...");
+    console.log("🔄 Fetching Eredivisie matches from API");
+    const response = await fetch(`${API_URL}/eventsnextleague.php?id=4337`);
+    const data = await response.json();
     
-    // Eredivisie league ID in TheSportsDB is 4337
-    const eredivisieLeagueId = 4337;
+    // Get the events/fixtures array from response
+    const fixtures = data.events || [];
+    console.log(`📊 Fetched ${fixtures?.length || 0} fixtures from API`);
     
-    console.log(`🔍 Fetching Eredivisie fixtures from TheSportsDB`);
-    const fixtures = await fetchLeagueMatches(eredivisieLeagueId);
-    
-    if (fixtures.length === 0) {
+    if (!fixtures || fixtures.length === 0) {
       console.log(`⚠️ No fixtures found, generating sample data`);
-      const fallbackMatches = generateSampleMatches(); // Removed await
+      const fallbackMatches = generateSampleMatches(); // No await needed
       cachedEredivisieMatches = fallbackMatches;
       lastFetchTime = now;
-      return fallbackMatches; // Fallback if no fixtures
+      return fallbackMatches;
     }
     
-    console.log(`✅ Success! Found ${fixtures.length} upcoming Eredivisie matches`);
+    // Convert API response to our Match type
+    const matches = transformApiResponseToMatches(fixtures);
     
-    // Update cache
-    cachedEredivisieMatches = fixtures;
+    // Sort matches by date ascending and cache them
+    const sortedMatches = [...matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    cachedEredivisieMatches = sortedMatches;
     lastFetchTime = now;
-    
-    return fixtures;
+    return sortedMatches;
   } catch (error) {
     console.error("❌ Error fetching Eredivisie matches:", error);
     // If we already have cached data, use that instead of generating new samples
@@ -49,261 +51,146 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
       console.log("⚠️ Using previously cached data due to API error");
       return cachedEredivisieMatches;
     }
-    const fallbackMatches = generateSampleMatches(); // Removed await
+    const fallbackMatches = generateSampleMatches(); // No await needed
     cachedEredivisieMatches = fallbackMatches;
     lastFetchTime = Date.now();
-    return fallbackMatches; // Fallback to generated data
+    return fallbackMatches;
   }
 };
 
-// Helper to fetch league matches from TheSportsDB
-const fetchLeagueMatches = async (leagueId: number): Promise<Match[]> => {
+// Fetch matches for a specific team
+export const fetchMatchesForTeam = async (teamName: string): Promise<Match[]> => {
   try {
-    // The league endpoint for upcoming events
-    const url = `${API_URL}/eventsnextleague.php?id=${leagueId}`;
-    console.log(`📡 API Request: ${url}`);
+    // First get all Eredivisie matches
+    const allMatches = await fetchEredivisieMatches();
     
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log(`📊 API Response for fixtures:`, data);
-    
-    if (!data.events || data.events.length === 0) {
-      console.log("No events found in API response");
-      return [];
-    }
-    
-    // Filter events to ensure they're from Eredivisie only
-    const eredivisieEvents = data.events.filter((event: any) => {
-      // Check if the event belongs to Eredivisie
-      // Either by checking the league name or ID if available
-      return event.strLeague === "Eredivisie" || event.idLeague === "4337";
+    // Filter for matches where the team is playing
+    const teamMatches = allMatches.filter(match => {
+      return match.homeTeam.toLowerCase().includes(teamName.toLowerCase()) || 
+             match.awayTeam.toLowerCase().includes(teamName.toLowerCase());
     });
     
-    console.log(`Found ${eredivisieEvents.length} Eredivisie events after filtering`);
-    
-    // Map TheSportsDB data to our Match format
-    return eredivisieEvents.map((event: any) => ({
-      id: event.idEvent,
-      homeTeam: event.strHomeTeam,
-      awayTeam: event.strAwayTeam,
-      date: new Date(`${event.dateEvent} ${event.strTime || '20:00:00'}`).toISOString(),
-      competition: "Eredivisie",
-      venue: event.strVenue || "Unknown Venue",
-      status: event.strStatus || "Not Started",
-    }));
+    console.log(`📊 Found ${teamMatches.length} matches for ${teamName}`);
+    return teamMatches;
   } catch (error) {
-    console.error("❌ Error fetching league fixtures:", error);
-    return [];
+    console.error(`❌ Error fetching matches for ${teamName}:`, error);
+    throw error;
   }
+};
+
+// Helper to transform API response to our Match type
+const transformApiResponseToMatches = (fixtures: any[]): Match[] => {
+  return fixtures.map(fixture => ({
+    id: fixture.idEvent,
+    homeTeam: fixture.strHomeTeam,
+    awayTeam: fixture.strAwayTeam,
+    date: fixture.dateEvent,
+    time: fixture.strTime || "20:00",
+    venue: fixture.strVenue || "TBD",
+    leagueId: "eredivisie", // hardcoded since we're filtering for Eredivisie
+  }));
 };
 
 // Helper for generating sample matches as fallback
-const generateSampleMatches = (): Match[] => { // Removed async, direct return
+const generateSampleMatches = (): Match[] => { // No async needed here
   console.log("🔄 Generating sample Eredivisie matches");
   
   const eredivisieTeams = [
-    "Ajax Amsterdam", "PSV Eindhoven", "Feyenoord Rotterdam", "AZ Alkmaar", 
-    "FC Utrecht", "FC Twente", "Vitesse", "FC Groningen", "SC Heerenveen",
-    "Sparta Rotterdam", "RKC Waalwijk", "NEC Nijmegen", "Go Ahead Eagles",
-    "Fortuna Sittard", "PEC Zwolle", "Heracles Almelo", "Excelsior", "Willem II"
+    "Ajax",
+    "PSV",
+    "Feyenoord",
+    "AZ Alkmaar",
+    "FC Utrecht",
+    "FC Twente",
+    "Vitesse",
+    "FC Groningen",
+    "Heerenveen", 
+    "Sparta Rotterdam",
+    "NEC Nijmegen",
+    "Go Ahead Eagles",
+    "FC Emmen",
+    "Excelsior",
+    "RKC Waalwijk",
+    "Fortuna Sittard"
   ];
   
   const venues = [
-    "Johan Cruijff Arena", "Philips Stadion", "De Kuip", "AFAS Stadion", 
-    "Galgenwaard", "Grolsch Veste", "GelreDome", "Euroborg", "Abe Lenstra Stadion"
+    "Johan Cruijff Arena",
+    "Philips Stadion",
+    "De Kuip",
+    "AFAS Stadion",
+    "Galgenwaard",
+    "De Grolsch Veste",
+    "GelreDome",
+    "Euroborg",
+    "Abe Lenstra Stadion",
+    "Het Kasteel",
+    "Goffertstadion",
+    "De Adelaarshorst",
+    "De Oude Meerdijk",
+    "Van Donge & De Roo Stadion",
+    "Mandemakers Stadion",
+    "Fortuna Sittard Stadion"
   ];
   
   const matches: Match[] = [];
-  const startDate = new Date();
   
-  // Generate 20 upcoming matches
-  for (let i = 0; i < 20; i++) {
-    const matchDate = new Date(startDate);
-    matchDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30)); // Next month
+  // Generate matches for the next 3 months
+  for (let i = 0; i < 80; i++) {
+    // Randomly select two different teams
+    const homeIndex = Math.floor(Math.random() * eredivisieTeams.length);
+    let awayIndex = homeIndex;
     
-    const homeTeamIndex = Math.floor(Math.random() * eredivisieTeams.length);
-    let awayTeamIndex;
-    do {
-      awayTeamIndex = Math.floor(Math.random() * eredivisieTeams.length);
-    } while (awayTeamIndex === homeTeamIndex);
+    // Make sure home and away teams are different
+    while (awayIndex === homeIndex) {
+      awayIndex = Math.floor(Math.random() * eredivisieTeams.length);
+    }
     
-    const homeTeam = eredivisieTeams[homeTeamIndex];
-    const awayTeam = eredivisieTeams[awayTeamIndex];
-    const venue = venues[Math.floor(Math.random() * venues.length)];
-    const status = "Scheduled";
+    // Generate a date within next 3 months
+    const matchDate = addDays(new Date(), Math.floor(Math.random() * 90));
+    
+    // Format date as YYYY-MM-DD
+    const formattedDate = format(matchDate, 'yyyy-MM-dd');
+    
+    // Generate a random time, typically on the hour or half-hour
+    const hours = Math.floor(Math.random() * 6) + 15; // Between 15:00 - 20:00
+    const minutes = Math.random() > 0.5 ? '00' : '30'; // Either on the hour or half past
     
     matches.push({
-      id: `sample-match-${i}`,
-      homeTeam: homeTeam,
-      awayTeam: awayTeam,
-      date: matchDate.toISOString(),
-      competition: "Eredivisie",
-      venue: venue,
-      status: status,
+      id: `sample-${i}`,
+      homeTeam: eredivisieTeams[homeIndex],
+      awayTeam: eredivisieTeams[awayIndex],
+      date: formattedDate,
+      time: `${hours}:${minutes}`,
+      venue: venues[homeIndex],
+      leagueId: "eredivisie",
     });
   }
   
-  // Sort matches by date
+  // Sort by date
   return matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 };
 
-// Function to fetch matches for a specific team
-export const fetchMatchesForTeam = async (teamName: string): Promise<Match[]> => {
-  try {
-    console.log(`📋 Starting API process for ${teamName} from TheSportsDB...`);
-    
-    // First lookup the team ID
-    console.log(`🔍 Looking up team ID for "${teamName}"`);
-    const teamId = await fetchTeamId(teamName);
-    
-    if (!teamId) {
-      console.error(`❌ Team "${teamName}" not found in API`);
-      return generateMatchesForTeam(teamName); // Fallback
-    }
-    
-    // Then fetch fixtures for that team
-    console.log(`✅ Team found! ID: ${teamId}`);
-    console.log(`🔍 Fetching fixtures for team ID ${teamId}`);
-    
-    const fixtures = await fetchTeamMatches(teamId);
-    
-    if (fixtures.length === 0) {
-      console.log(`⚠️ No fixtures found, falling back to generated data`);
-      return generateMatchesForTeam(teamName); // Fallback if no fixtures
-    }
-    
-    // Filter fixtures to only include Eredivisie matches
-    const eredivisieFixtures = fixtures.filter(match => 
-      match.competition === "Eredivisie" || match.competition.includes("Eredivisie")
-    );
-    
-    console.log(`✅ Success! Found ${eredivisieFixtures.length} upcoming Eredivisie matches for ${teamName}`);
-    return eredivisieFixtures;
-  } catch (error) {
-    console.error("❌ Error in fetch process:", error);
-    return generateMatchesForTeam(teamName); // Fallback to generated data
+// Synchronous version for getMatchesForTeam for fallback 
+export const getMatchesForTeamSync = (teamName: string): Match[] => {
+  if (cachedEredivisieMatches.length === 0) {
+    cachedEredivisieMatches = generateSampleMatches();
+    lastFetchTime = Date.now();
   }
+  
+  return cachedEredivisieMatches.filter(match => 
+    match.homeTeam.toLowerCase().includes(teamName.toLowerCase()) ||
+    match.awayTeam.toLowerCase().includes(teamName.toLowerCase())
+  );
 };
 
-// Helper function to get team ID from name
-const fetchTeamId = async (teamName: string): Promise<string | null> => {
+// Main function that wraps the async API call for component usage
+export const getMatchesForTeam = async (teamName: string): Promise<Match[]> => {
   try {
-    const url = `${API_URL}/searchteams.php?t=${encodeURIComponent(teamName)}`;
-    console.log(`📡 API Request: ${url}`);
-    
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log(`📊 API Response for team lookup:`, data);
-    
-    if (data.teams && data.teams.length > 0) {
-      return data.teams[0].idTeam;
-    }
-    return null;
+    return await fetchMatchesForTeam(teamName);
   } catch (error) {
-    console.error("❌ Error fetching team ID:", error);
-    return null;
+    console.error(`❌ Error in getMatchesForTeam for ${teamName}:`, error);
+    // Fall back to sync version if async fails
+    return getMatchesForTeamSync(teamName);
   }
-};
-
-// Helper function to fetch team matches
-const fetchTeamMatches = async (teamId: string): Promise<Match[]> => {
-  try {
-    const url = `${API_URL}/eventsnext.php?id=${teamId}`;
-    console.log(`📡 API Request: ${url}`);
-    
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log(`📊 API Response for team matches:`, data);
-    
-    if (!data.events || data.events.length === 0) {
-      console.log("No events found in API response");
-      return [];
-    }
-    
-    // Map API data to our Match format
-    return data.events.map((event: any) => ({
-      id: event.idEvent,
-      homeTeam: event.strHomeTeam,
-      awayTeam: event.strAwayTeam,
-      date: new Date(`${event.dateEvent} ${event.strTime || '20:00:00'}`).toISOString(),
-      competition: event.strLeague || "Unknown League",
-      venue: event.strVenue || "Unknown Venue",
-      status: event.strStatus || "Scheduled",
-    }));
-  } catch (error) {
-    console.error("❌ Error fetching team fixtures:", error);
-    return [];
-  }
-};
-
-// Helper for team matches - with added caching
-const teamMatchesCache: Record<string, {matches: Match[], timestamp: number}> = {};
-
-// Helper function to generate sample matches for development/fallback
-const generateMatchesForTeam = (teamName: string): Promise<Match[]> => {
-  // Check if we have cached data for this team
-  if (teamMatchesCache[teamName] && Date.now() - teamMatchesCache[teamName].timestamp < CACHE_DURATION) {
-    console.log(`🔄 Using cached data for ${teamName}`);
-    return Promise.resolve(teamMatchesCache[teamName].matches);
-  }
-  
-  console.log(`🔄 Generating fallback data for ${teamName}`);
-  
-  const competitions = ["Eredivisie"];
-  const venues = ["Johan Cruijff Arena", "Philips Stadion", "De Kuip", "AFAS Stadion", "Grolsch Veste"];
-  const eredivisieTeams = [
-    "Ajax Amsterdam", "PSV Eindhoven", "Feyenoord Rotterdam", "AZ Alkmaar", 
-    "FC Utrecht", "FC Twente", "Vitesse", "FC Groningen", "SC Heerenveen",
-    "Sparta Rotterdam", "RKC Waalwijk", "NEC Nijmegen", "Go Ahead Eagles",
-    "Fortuna Sittard", "PEC Zwolle", "Heracles Almelo", "Excelsior", "Willem II"
-  ];
-  
-  const matches: Match[] = [];
-  const startDate = new Date();
-  
-  // Generate upcoming matches
-  for (let i = 0; i < 20; i++) {
-    const matchDate = new Date(startDate);
-    matchDate.setDate(startDate.getDate() + Math.floor(Math.random() * 90)); // Next 3 months
-    
-    const isHome = Math.random() > 0.5;
-    // Remove the current team from possible opponents
-    const possibleOpponents = eredivisieTeams.filter(team => team !== teamName);
-    const opponent = possibleOpponents[Math.floor(Math.random() * possibleOpponents.length)];
-    
-    matches.push({
-      id: `match-${teamName}-${i}`,
-      homeTeam: isHome ? teamName : opponent,
-      awayTeam: isHome ? opponent : teamName,
-      date: matchDate.toISOString(),
-      competition: "Eredivisie",
-      venue: isHome ? venues[Math.floor(Math.random() * venues.length)] : "Uitstadion",
-    });
-  }
-  
-  // Sort matches by date
-  const sortedMatches = matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  
-  // Cache the result
-  teamMatchesCache[teamName] = {
-    matches: sortedMatches,
-    timestamp: Date.now()
-  };
-  
-  return Promise.resolve(sortedMatches);
 };
