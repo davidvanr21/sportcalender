@@ -1,3 +1,4 @@
+
 import { Match } from "../types";
 
 // TheSportsDB API information
@@ -28,7 +29,7 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
     
     if (fixtures.length === 0) {
       console.log(`⚠️ No fixtures found, generating sample data`);
-      const fallbackMatches = generateSampleMatches();
+      const fallbackMatches = await generateSampleMatches(); // Fixed: await here
       cachedEredivisieMatches = fallbackMatches;
       lastFetchTime = now;
       return fallbackMatches; // Fallback if no fixtures
@@ -48,7 +49,7 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
       console.log("⚠️ Using previously cached data due to API error");
       return cachedEredivisieMatches;
     }
-    const fallbackMatches = generateSampleMatches();
+    const fallbackMatches = await generateSampleMatches(); // Fixed: await here
     cachedEredivisieMatches = fallbackMatches;
     lastFetchTime = Date.now();
     return fallbackMatches; // Fallback to generated data
@@ -102,7 +103,7 @@ const fetchLeagueMatches = async (leagueId: number): Promise<Match[]> => {
 };
 
 // Helper for generating sample matches as fallback
-const generateSampleMatches = (): Promise<Match[]> => {
+const generateSampleMatches = async (): Promise<Match[]> => { // Fixed: made async
   console.log("🔄 Generating sample Eredivisie matches");
   
   const eredivisieTeams = [
@@ -148,7 +149,7 @@ const generateSampleMatches = (): Promise<Match[]> => {
   }
   
   // Sort matches by date
-  return Promise.resolve(matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+  return matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 };
 
 // Function to fetch matches for a specific team
