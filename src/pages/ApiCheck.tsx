@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Code, Share, ArrowRight, InfoIcon } from 'lucide-react';
+import { ChevronLeft, Code, Share, ArrowRight, InfoIcon, RefreshCw } from 'lucide-react';
 import type { Match } from '@/types';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
@@ -67,6 +67,19 @@ const ApiCheck: React.FC = () => {
         });
       });
     }
+  };
+
+  // Function to get status badge color based on status
+  const getStatusBadgeColor = (status: string) => {
+    status = status.toLowerCase();
+    if (status.includes('not started') || status.includes('scheduled')) {
+      return 'bg-green-400/10 text-green-300';
+    } else if (status.includes('postponed') || status.includes('cancelled')) {
+      return 'bg-amber-400/10 text-amber-300';
+    } else if (status.includes('finished') || status.includes('completed')) {
+      return 'bg-blue-400/10 text-blue-300';
+    }
+    return 'bg-green-400/10 text-green-300'; // Default
   };
 
   if (isLoading) return (
@@ -140,7 +153,7 @@ const ApiCheck: React.FC = () => {
               className="flex items-center gap-2 border-green-400 text-green-400 hover:bg-green-400/10"
             >
               <Code size={18} />
-              {showJson ? 'Verberg JSON' : 'More Info'}
+              {showJson ? 'Verberg JSON' : 'Toon JSON'}
             </Button>
             
             <Button 
@@ -181,7 +194,7 @@ const ApiCheck: React.FC = () => {
               onClick={handleRefreshData}
               className="p-3 bg-green-400 text-black rounded-full"
             >
-              <InfoIcon size={20} />
+              <RefreshCw size={20} />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -233,12 +246,13 @@ const ApiCheck: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="border-green-400/30">
-                    <TableHead className="text-green-300">DATUM</TableHead>
+                    <TableHead className="text-green-300">MATCH ID</TableHead>
+                    <TableHead className="text-green-300">DATUM & TIJD</TableHead>
                     <TableHead className="text-green-300">THUISTEAM</TableHead>
                     <TableHead className="text-green-300">UITTEAM</TableHead>
                     <TableHead className="text-green-300 hidden md:table-cell">STADION</TableHead>
-                    <TableHead className="text-green-300 hidden md:table-cell">STATUS</TableHead>
-                    <TableHead className="text-green-300"></TableHead>
+                    <TableHead className="text-green-300 hidden md:table-cell">COMPETITIE</TableHead>
+                    <TableHead className="text-green-300">STATUS</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -248,27 +262,23 @@ const ApiCheck: React.FC = () => {
                       variants={item}
                       className="group border-green-400/10 hover:bg-green-400/5 cursor-pointer transition-colors"
                     >
+                      <TableCell className="font-mono text-xs">
+                        {match.id.substring(0, 8)}...
+                      </TableCell>
                       <TableCell className="font-mono">
                         {formatDateNL(new Date(match.date), 'PP')}
                         <div className="text-xs opacity-70">
-                          {formatDateNL(new Date(match.date), 'HH:mm')}
+                          {match.time || "TBD"}
                         </div>
                       </TableCell>
                       <TableCell>{match.homeTeam}</TableCell>
                       <TableCell>{match.awayTeam}</TableCell>
                       <TableCell className="hidden md:table-cell">{match.venue}</TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <span className="px-2 py-1 bg-green-400/10 rounded-full text-xs font-medium text-green-300">
-                          {match.status || 'SCHEDULED'}
+                      <TableCell className="hidden md:table-cell">{match.competition}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(match.status)}`}>
+                          {match.status}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <motion.span
-                          whileHover={{ x: 5 }}
-                          className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <ArrowRight size={16} />
-                        </motion.span>
                       </TableCell>
                     </motion.tr>
                   ))}

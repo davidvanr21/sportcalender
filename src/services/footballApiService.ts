@@ -2,15 +2,19 @@
 import { Match, League } from '../types';
 import { addDays, format } from 'date-fns';
 
-// API URL - using the free Sports DB API
+// API URL - using the free Sports DB API with test key
 const API_URL = "https://www.thesportsdb.com/api/v1/json/3";
+const LEAGUE_ID = "4337"; // Dutch Eredivisie League ID
 
 // Cache for API responses to prevent reload differences
-let cachedEredivisieMatches: Match[] = []; // Using direct array type
+let cachedEredivisieMatches: Match[] = [];
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 let lastFetchTime = 0;
 
-// Fetch Eredivisie matches
+/**
+ * Fetches upcoming Eredivisie matches from the API
+ * @returns Promise<Match[]> - A promise that resolves to an array of matches
+ */
 export const fetchEredivisieMatches = async (): Promise<Match[]> => {
   try {
     // Check if we have cached data that's still fresh
@@ -21,7 +25,12 @@ export const fetchEredivisieMatches = async (): Promise<Match[]> => {
     }
     
     console.log("🔄 Fetching Eredivisie matches from API");
-    const response = await fetch(`${API_URL}/eventsnextleague.php?id=4337`);
+    const response = await fetch(`${API_URL}/eventsnextleague.php?id=${LEAGUE_ID}`);
+    
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+    
     const data = await response.json();
     
     // Get the events/fixtures array from response
@@ -58,7 +67,7 @@ export const fetchEredivisieMatches = async (): Promise<Match[]> => {
   }
 };
 
-// Adding alias for fetchUpcomingEredivisieMatches to match what's imported in ApiCheck.tsx
+// This alias is needed for compatibility with ApiCheck.tsx
 export const fetchUpcomingEredivisieMatches = fetchEredivisieMatches;
 
 // Fetch matches for a specific team
@@ -81,20 +90,41 @@ export const fetchMatchesForTeam = async (teamName: string): Promise<Match[]> =>
   }
 };
 
-// Helper to transform API response to our Match type
+/**
+ * Transform API response to our Match type format
+ * @param fixtures - Raw fixture data from the API
+ * @returns Transformed match data
+ */
 const transformApiResponseToMatches = (fixtures: any[]): Match[] => {
-  return fixtures.map(fixture => ({
-    id: fixture.idEvent,
-    homeTeam: fixture.strHomeTeam,
-    awayTeam: fixture.strAwayTeam,
-    date: fixture.dateEvent,
-    competition: "Eredivisie", // Add this to match the Match type
-    venue: fixture.strVenue || "TBD",
-    status: "SCHEDULED" // Add status field since it's optional in the Match type
-  }));
+  return fixtures.map(fixture => {
+    // Format the time if provided
+    let timeFormatted = "TBD";
+    if (fixture.strTime) {
+      try {
+        const [hours, minutes] = fixture.strTime.split(':');
+        timeFormatted = `${hours}:${minutes}`;
+      } catch (e) {
+        console.warn("Could not parse time:", fixture.strTime);
+      }
+    }
+
+    return {
+      id: fixture.idEvent,
+      homeTeam: fixture.strHomeTeam,
+      awayTeam: fixture.strAwayTeam,
+      date: fixture.dateEvent,
+      time: timeFormatted,
+      competition: fixture.strLeague || "Dutch Eredivisie",
+      venue: fixture.strVenue || "TBD",
+      status: fixture.strStatus || "Not Started"
+    };
+  });
 };
 
-// Helper for generating sample matches
+/**
+ * Generates sample Eredivisie matches for fallback or testing
+ * @returns Array of sample match data
+ */
 const generateSampleMatches = (): Match[] => {
   console.log("🔄 Generating sample Eredivisie matches");
   
@@ -136,6 +166,7 @@ const generateSampleMatches = (): Match[] => {
     "Fortuna Sittard Stadion"
   ];
   
+  const statuses = ["Not Started", "Scheduled", "Postponed"];
   const matches: Match[] = [];
   
   // Generate matches for the next 3 months
@@ -158,15 +189,20 @@ const generateSampleMatches = (): Match[] => {
     // Generate a random time, typically on the hour or half-hour
     const hours = Math.floor(Math.random() * 6) + 15; // Between 15:00 - 20:00
     const minutes = Math.random() > 0.5 ? '00' : '30'; // Either on the hour or half past
+    const timeStr = `${hours}:${minutes}`;
+    
+    // Pick a random status
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
     
     matches.push({
       id: `sample-${i}`,
       homeTeam: eredivisieTeams[homeIndex],
       awayTeam: eredivisieTeams[awayIndex],
       date: formattedDate,
-      competition: "Eredivisie", // Match the Match type requirements
+      time: timeStr,
+      competition: "Dutch Eredivisie",
       venue: venues[homeIndex],
-      status: "SCHEDULED" // Add status field
+      status: status
     });
   }
   

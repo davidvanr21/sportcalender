@@ -22,7 +22,8 @@ export interface Match {
   homeTeam: string;
   awayTeam: string;
   date: string; // ISO date string
+  time?: string; // Optional time field
   competition: string;
   venue: string;
-  status?: string; // Optional status field
+  status: string; // Match status (e.g., "Not Started", "Finished", "Postponed")
 }

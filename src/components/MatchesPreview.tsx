@@ -49,6 +49,19 @@ const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDo
     displayMatchesByMonth[monthYear].push(match);
   });
 
+  // Function to get status badge color based on status
+  const getStatusBadgeClass = (status: string) => {
+    status = status.toLowerCase();
+    if (status.includes('not started') || status.includes('scheduled')) {
+      return 'bg-blue-100 text-blue-800';
+    } else if (status.includes('postponed') || status.includes('cancelled')) {
+      return 'bg-amber-100 text-amber-800';
+    } else if (status.includes('finished') || status.includes('completed')) {
+      return 'bg-green-100 text-green-800';
+    }
+    return 'bg-gray-100 text-gray-800'; // Default
+  };
+
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-6">
@@ -112,14 +125,19 @@ const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDo
                           {date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
                         </div>
                         <div className="w-16 text-sm text-gray-600">
-                          {date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
+                          {match.time || "TBD"}
                         </div>
                       </div>
                       <div className="flex-grow font-medium mb-1 sm:mb-0">
                         {isHome ? teamName : opponent} vs {isHome ? opponent : teamName}
                       </div>
-                      <div className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 self-start sm:self-auto">
-                        {match.competition}
+                      <div className="flex flex-wrap gap-1">
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 self-start sm:self-auto">
+                          {match.competition}
+                        </span>
+                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusBadgeClass(match.status)}`}>
+                          {match.status}
+                        </span>
                       </div>
                     </div>
                   );

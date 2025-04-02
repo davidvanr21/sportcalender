@@ -10,7 +10,7 @@ export const getMatchesForTeam = async (teamName: string): Promise<Match[]> => {
 // Fallback for non-async contexts
 export const getMatchesForTeamSync = (teamName: string): Match[] => {
   console.log("Using synchronous fallback for team matches");
-  const competitions = ["Eredivisie", "KNVB Beker", "Champions League", "Europa League"];
+  const competitions = ["Dutch Eredivisie", "KNVB Beker", "Champions League", "Europa League"];
   const venues = ["Thuis", "Uit"];
   const teams = ["Ajax Amsterdam", "PSV Eindhoven", "Feyenoord Rotterdam", "AZ Alkmaar"];
   const matches: Match[] = [];
@@ -32,9 +32,11 @@ export const getMatchesForTeamSync = (teamName: string): Match[] => {
       id: `match-${teamName}-${i}`,
       homeTeam: isHome ? teamName : opponent,
       awayTeam: isHome ? opponent : teamName,
-      date: matchDate.toISOString(),
+      date: matchDate.toISOString().split('T')[0],
+      time: "20:00",
       competition: competitions[Math.floor(Math.random() * competitions.length)],
       venue: isHome ? "Thuis" : "Uit",
+      status: "Scheduled"
     });
   }
   
