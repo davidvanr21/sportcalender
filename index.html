@@ -1,24 +1,43 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>fan-schedule-sync</title>
-    <meta name="description" content="Lovable Generated Project" />
+    <meta name="description" content="Voetbalwedstrijden in je agenda" />
     <meta name="author" content="Lovable" />
 
-    <meta property="og:title" content="Lovable Generated Project" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Voetbalwedstrijden in je agenda" />
+    <meta property="og:description" content="Download makkelijk je favoriete club wedstrijden" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <!-- Dark Theme Meta Tags -->
+    <meta name="theme-color" content="#1A1F2C" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <!-- Preload Key Resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    <link rel="preload" href="/src/index.css" as="style" />
+
+    <!-- Favicon and Touch Icons -->
+    <link rel="icon" type="image/svg+xml" href="/public/placeholder.svg" />
+    <link rel="apple-touch-icon" href="/public/placeholder.svg" />
+
+    <!-- Custom Styling Hints -->
+    <style>
+      :root {
+        --sport-green: #3a8952;
+        --sport-dark-bg: #1A1F2C;
+        --sport-light-bg: #F2FCE2;
+      }
+    </style>
   </head>
 
-  <body>
-    <div id="root"></div>
+  <body class="bg-background dark:bg-sport-dark-bg transition-colors duration-300">
+    <div id="root" class="min-h-screen flex flex-col"></div>
+    
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>

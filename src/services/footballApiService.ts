@@ -5,7 +5,7 @@ import { Match } from "../types";
 const API_URL = "https://www.thesportsdb.com/api/v1/json/3";
 
 // Cache for API responses to prevent reload differences
-let cachedEredivisieMatches: Match[] | null = null;
+let cachedEredivisieMatches: Match[] = []; // Changed to direct Match[] array
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 let lastFetchTime = 0;
 
@@ -14,7 +14,7 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
   try {
     // Check if we have cached data that's still fresh
     const now = Date.now();
-    if (cachedEredivisieMatches && now - lastFetchTime < CACHE_DURATION) {
+    if (cachedEredivisieMatches.length > 0 && now - lastFetchTime < CACHE_DURATION) {
       console.log("📋 Using cached Eredivisie matches data");
       return cachedEredivisieMatches;
     }
@@ -29,7 +29,7 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
     
     if (fixtures.length === 0) {
       console.log(`⚠️ No fixtures found, generating sample data`);
-      const fallbackMatches = await generateSampleMatches();
+      const fallbackMatches = generateSampleMatches(); // Removed await
       cachedEredivisieMatches = fallbackMatches;
       lastFetchTime = now;
       return fallbackMatches; // Fallback if no fixtures
@@ -45,11 +45,11 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
   } catch (error) {
     console.error("❌ Error fetching Eredivisie matches:", error);
     // If we already have cached data, use that instead of generating new samples
-    if (cachedEredivisieMatches) {
+    if (cachedEredivisieMatches.length > 0) {
       console.log("⚠️ Using previously cached data due to API error");
       return cachedEredivisieMatches;
     }
-    const fallbackMatches = await generateSampleMatches();
+    const fallbackMatches = generateSampleMatches(); // Removed await
     cachedEredivisieMatches = fallbackMatches;
     lastFetchTime = Date.now();
     return fallbackMatches; // Fallback to generated data
@@ -103,7 +103,7 @@ const fetchLeagueMatches = async (leagueId: number): Promise<Match[]> => {
 };
 
 // Helper for generating sample matches as fallback
-const generateSampleMatches = async (): Promise<Match[]> => {
+const generateSampleMatches = (): Match[] => { // Removed async, direct return
   console.log("🔄 Generating sample Eredivisie matches");
   
   const eredivisieTeams = [
