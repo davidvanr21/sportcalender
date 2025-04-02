@@ -129,20 +129,20 @@ const generateSampleMatches = (): Match[] => {
   console.log("🔄 Generating sample Eredivisie matches");
   
   const eredivisieTeams = [
-    "Ajax",
-    "PSV",
-    "Feyenoord",
+    "Ajax Amsterdam",
+    "PSV Eindhoven",
+    "Feyenoord Rotterdam",
     "AZ Alkmaar",
     "FC Utrecht",
     "FC Twente",
-    "Vitesse",
+    "Vitesse Arnhem",
     "FC Groningen",
-    "Heerenveen", 
+    "SC Heerenveen", 
     "Sparta Rotterdam",
     "NEC Nijmegen",
     "Go Ahead Eagles",
     "FC Emmen",
-    "Excelsior",
+    "Excelsior Rotterdam",
     "RKC Waalwijk",
     "Fortuna Sittard"
   ];
