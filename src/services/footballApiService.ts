@@ -29,7 +29,7 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
     
     if (fixtures.length === 0) {
       console.log(`⚠️ No fixtures found, generating sample data`);
-      const fallbackMatches = await generateSampleMatches(); // Fixed: await here
+      const fallbackMatches = await generateSampleMatches();
       cachedEredivisieMatches = fallbackMatches;
       lastFetchTime = now;
       return fallbackMatches; // Fallback if no fixtures
@@ -49,7 +49,7 @@ export const fetchUpcomingEredivisieMatches = async (): Promise<Match[]> => {
       console.log("⚠️ Using previously cached data due to API error");
       return cachedEredivisieMatches;
     }
-    const fallbackMatches = await generateSampleMatches(); // Fixed: await here
+    const fallbackMatches = await generateSampleMatches();
     cachedEredivisieMatches = fallbackMatches;
     lastFetchTime = Date.now();
     return fallbackMatches; // Fallback to generated data
@@ -103,7 +103,7 @@ const fetchLeagueMatches = async (leagueId: number): Promise<Match[]> => {
 };
 
 // Helper for generating sample matches as fallback
-const generateSampleMatches = async (): Promise<Match[]> => { // Fixed: made async
+const generateSampleMatches = async (): Promise<Match[]> => {
   console.log("🔄 Generating sample Eredivisie matches");
   
   const eredivisieTeams = [
