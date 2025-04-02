@@ -30,7 +30,7 @@ export const fetchEredivisieMatches = async (): Promise<Match[]> => {
     
     if (!fixtures || fixtures.length === 0) {
       console.log(`⚠️ No fixtures found, generating sample data`);
-      const fallbackMatches = generateSampleMatches(); // No await needed
+      const fallbackMatches = generateSampleMatches();
       cachedEredivisieMatches = fallbackMatches;
       lastFetchTime = now;
       return fallbackMatches;
@@ -51,12 +51,15 @@ export const fetchEredivisieMatches = async (): Promise<Match[]> => {
       console.log("⚠️ Using previously cached data due to API error");
       return cachedEredivisieMatches;
     }
-    const fallbackMatches = generateSampleMatches(); // No await needed
+    const fallbackMatches = generateSampleMatches();
     cachedEredivisieMatches = fallbackMatches;
     lastFetchTime = Date.now();
     return fallbackMatches;
   }
 };
+
+// Adding alias for fetchUpcomingEredivisieMatches to match what's imported in ApiCheck.tsx
+export const fetchUpcomingEredivisieMatches = fetchEredivisieMatches;
 
 // Fetch matches for a specific team
 export const fetchMatchesForTeam = async (teamName: string): Promise<Match[]> => {
@@ -85,14 +88,14 @@ const transformApiResponseToMatches = (fixtures: any[]): Match[] => {
     homeTeam: fixture.strHomeTeam,
     awayTeam: fixture.strAwayTeam,
     date: fixture.dateEvent,
-    time: fixture.strTime || "20:00",
+    competition: "Eredivisie", // Add this to match the Match type
     venue: fixture.strVenue || "TBD",
-    leagueId: "eredivisie", // hardcoded since we're filtering for Eredivisie
+    status: "SCHEDULED" // Add status field since it's optional in the Match type
   }));
 };
 
-// Helper for generating sample matches as fallback
-const generateSampleMatches = (): Match[] => { // No async needed here
+// Helper for generating sample matches
+const generateSampleMatches = (): Match[] => {
   console.log("🔄 Generating sample Eredivisie matches");
   
   const eredivisieTeams = [
@@ -161,9 +164,9 @@ const generateSampleMatches = (): Match[] => { // No async needed here
       homeTeam: eredivisieTeams[homeIndex],
       awayTeam: eredivisieTeams[awayIndex],
       date: formattedDate,
-      time: `${hours}:${minutes}`,
+      competition: "Eredivisie", // Match the Match type requirements
       venue: venues[homeIndex],
-      leagueId: "eredivisie",
+      status: "SCHEDULED" // Add status field
     });
   }
   

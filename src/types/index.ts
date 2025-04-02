@@ -24,5 +24,5 @@ export interface Match {
   date: string; // ISO date string
   competition: string;
   venue: string;
-  status?: string; // Added status field
+  status?: string; // Optional status field
 }
