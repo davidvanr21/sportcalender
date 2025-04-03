@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LeagueSelector from '@/components/LeagueSelector';
@@ -6,9 +8,13 @@ import TeamSelector from '@/components/TeamSelector';
 import MatchesPreview from '@/components/MatchesPreview';
 import { leagues } from '@/data/leagues';
 import { teams } from '@/data/teams';
-import { getMatchesForTeam, getMatchesForTeamSync } from '@/data/matches';
+import { getMatchesForTeam, getMatchesForTeamSync } from '@/services/footballApiService';
 import { generateICS } from '@/utils/icsGenerator';
 import { useToast } from "@/components/ui/use-toast";
+import { Share, Calendar, Download, ArrowRight, RefreshCw } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   // Set default league to "eredivisie" and make it fixed
@@ -24,7 +30,6 @@ const Index = () => {
   useEffect(() => {
     const teamsInLeague = teams.filter(team => team.leagueId === "eredivisie");
     setFilteredTeams(teamsInLeague);
-    // Reset selected team when changing leagues
     setSelectedTeam(null);
     setMatches([]);
   }, [selectedLeague]);
@@ -43,7 +48,6 @@ const Index = () => {
           console.log(`📋 Fetching matches for team: ${teamData.name}`);
           
           try {
-            // Try to fetch matches asynchronously first
             console.log(`🔄 Calling getMatchesForTeam API service`);
             const teamMatches = await getMatchesForTeam(teamData.name);
             console.log(`✅ API call complete. Got ${teamMatches.length} matches`);
@@ -51,7 +55,6 @@ const Index = () => {
           } catch (error) {
             console.error("❌ Error in match fetching process:", error);
             console.log(`⚠️ Using fallback data generation method`);
-            // Fallback to synchronous method if async fails
             const fallbackMatches = getMatchesForTeamSync(teamData.name);
             setMatches(fallbackMatches);
           }
@@ -104,64 +107,157 @@ const Index = () => {
     });
   };
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Eredivisie Wedstrijden',
+        text: 'Bekijk de aankomende Eredivisie wedstrijden!',
+        url: window.location.href,
+      }).then(() => {
+        toast({
+          title: "Gedeeld!",
+          description: "De link is succesvol gedeeld.",
+        });
+      }).catch(console.error);
+    } else {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        toast({
+          title: "Link gekopieerd!",
+          description: "De link is naar je klembord gekopieerd.",
+        });
+      });
+    }
+  };
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col football-container">
+    <div className="min-h-screen flex flex-col bg-black text-green-300">
       <Header />
       
-      <main className="flex-grow container mx-auto px-4 py-6">
-        <section className="text-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">Voetbalwedstrijden in je agenda</h1>
-          <p className="text-md text-gray-600">
+      <motion.main 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex-grow container mx-auto px-4 py-6"
+      >
+        <motion.section 
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">EREDIVISIE <span className="text-green-400">&</span> LAUNCH</h1>
+          <motion.p 
+            className="text-lg text-green-400/80"
+            animate={{ 
+              scale: [1, 1.02, 1],
+            }}
+            transition={{ 
+              repeat: Infinity,
+              duration: 3,
+              ease: "easeInOut" 
+            }}
+          >
             Selecteer je favoriete club en download hun wedstrijdschema direct naar je agenda.
-          </p>
-        </section>
+          </motion.p>
+        </motion.section>
 
-        <section className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-4 mb-6">
-          <LeagueSelector 
-            leagues={leagues} 
-            selectedLeague={selectedLeague} 
-            onLeagueSelect={handleLeagueSelect} 
-          />
+        <motion.section 
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="max-w-md mx-auto bg-black border border-green-400/30 rounded-lg p-6 mb-8 shadow-lg"
+        >
+          <motion.div variants={item}>
+            <LeagueSelector 
+              leagues={leagues} 
+              selectedLeague={selectedLeague} 
+              onLeagueSelect={handleLeagueSelect} 
+            />
+          </motion.div>
           
-          <TeamSelector 
-            teams={filteredTeams} 
-            selectedTeam={selectedTeam} 
-            onTeamSelect={handleTeamSelect} 
-          />
-        </section>
+          <motion.div variants={item} className="mt-6">
+            <TeamSelector 
+              teams={filteredTeams} 
+              selectedTeam={selectedTeam} 
+              onTeamSelect={handleTeamSelect} 
+            />
+          </motion.div>
+        </motion.section>
 
         {selectedTeam && (
-          <section className="max-w-md mx-auto mb-6">
+          <motion.section 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="max-w-md mx-auto mb-8"
+          >
             <MatchesPreview 
               matches={matches} 
               teamName={teamName} 
               onDownload={handleDownloadCalendar}
               isLoading={isLoading} 
             />
-          </section>
+          </motion.section>
         )}
 
-        <section className="max-w-md mx-auto py-6">
-          <h2 className="text-xl font-bold mb-4 text-center">Hoe werkt het?</h2>
+        <motion.section 
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="max-w-md mx-auto py-8"
+        >
+          <motion.h2 variants={item} className="text-2xl font-bold mb-6 text-center text-green-400">HOE WERKT HET?</motion.h2>
           <div className="space-y-4">
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <div className="w-8 h-8 bg-sport-blue text-white rounded-full flex items-center justify-center mx-auto mb-2 text-md font-bold">1</div>
-              <h3 className="text-md font-semibold mb-1 text-center">Selecteer je club</h3>
-              <p className="text-sm text-gray-600 text-center">Kies je favoriete voetbalclub uit de lijst van beschikbare teams per competitie.</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <div className="w-8 h-8 bg-sport-blue text-white rounded-full flex items-center justify-center mx-auto mb-2 text-md font-bold">2</div>
-              <h3 className="text-md font-semibold mb-1 text-center">Bekijk de wedstrijden</h3>
-              <p className="text-sm text-gray-600 text-center">Bekijk alle aankomende wedstrijden van je gekozen club.</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <div className="w-8 h-8 bg-sport-blue text-white rounded-full flex items-center justify-center mx-auto mb-2 text-md font-bold">3</div>
-              <h3 className="text-md font-semibold mb-1 text-center">Download naar agenda</h3>
-              <p className="text-sm text-gray-600 text-center">Download het wedstrijdschema en importeer het in je favoriete agenda-app.</p>
-            </div>
+            <motion.div variants={item} className="bg-black/80 border border-green-400/30 p-6 rounded-lg shadow-md">
+              <div className="w-10 h-10 bg-green-400 text-black rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">1</div>
+              <h3 className="text-lg font-semibold mb-2 text-center">Selecteer je club</h3>
+              <p className="text-sm text-green-300/80 text-center">Kies je favoriete voetbalclub uit de lijst van beschikbare teams per competitie.</p>
+            </motion.div>
+            <motion.div variants={item} className="bg-black/80 border border-green-400/30 p-6 rounded-lg shadow-md">
+              <div className="w-10 h-10 bg-green-400 text-black rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">2</div>
+              <h3 className="text-lg font-semibold mb-2 text-center">Bekijk de wedstrijden</h3>
+              <p className="text-sm text-green-300/80 text-center">Bekijk alle aankomende wedstrijden van je gekozen club.</p>
+            </motion.div>
+            <motion.div variants={item} className="bg-black/80 border border-green-400/30 p-6 rounded-lg shadow-md">
+              <div className="w-10 h-10 bg-green-400 text-black rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">3</div>
+              <h3 className="text-lg font-semibold mb-2 text-center">Download naar agenda</h3>
+              <p className="text-sm text-green-300/80 text-center">Download het wedstrijdschema en importeer het in je favoriete agenda-app.</p>
+            </motion.div>
           </div>
-        </section>
-      </main>
+        </motion.section>
+        
+        <motion.div 
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="max-w-md mx-auto text-center my-8"
+        >
+          <Button 
+            asChild
+            className="bg-green-400 hover:bg-green-500 text-black font-bold text-lg p-6"
+          >
+            <Link to="/api-check" className="flex items-center gap-2">
+              Bekijk alle wedstrijden <ArrowRight size={20} />
+            </Link>
+          </Button>
+        </motion.div>
+      </motion.main>
       
       <Footer />
     </div>

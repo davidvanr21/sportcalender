@@ -25,6 +25,7 @@ export const fetchEredivisieMatches = async (): Promise<Match[]> => {
     }
     
     console.log("🔄 Fetching Eredivisie matches from API");
+    // Use the specific Eredivisie endpoint
     const response = await fetch(`${API_URL}/eventsnextleague.php?id=${LEAGUE_ID}`);
     
     if (!response.ok) {
@@ -67,7 +68,7 @@ export const fetchEredivisieMatches = async (): Promise<Match[]> => {
   }
 };
 
-// This alias is needed for compatibility with ApiCheck.tsx
+// Export alias for ApiCheck.tsx compatibility
 export const fetchUpcomingEredivisieMatches = fetchEredivisieMatches;
 
 // Fetch matches for a specific team
