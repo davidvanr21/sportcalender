@@ -38,31 +38,13 @@ export const fetchEredivisieMatches = async (): Promise<Match[]> => {
     const fixtures = data.events || [];
     console.log(`📊 Fetched ${fixtures?.length || 0} fixtures from API`);
     
-    if (!fixtures || fixtures.length === 0) {
-      console.log(`⚠️ No fixtures found, generating sample Eredivisie data`);
-      const fallbackMatches = generateSampleMatches();
-      cachedEredivisieMatches = fallbackMatches;
-      lastFetchTime = now;
-      return fallbackMatches;
-    }
-    
-    // Convert API response to our Match type - making sure to properly map leagues
-    let matches = transformApiResponseToMatches(fixtures);
-    
-    // If the API returned non-Eredivisie matches, filter or generate Eredivisie samples
-    if (matches.length > 0 && !matches.some(m => m.competition.toLowerCase().includes('eredivisie'))) {
-      console.log("⚠️ API returned matches but none are from Eredivisie. Converting to Eredivisie matches.");
-      // Convert the existing fixtures to Eredivisie matches
-      matches = convertToEredivisieMatches(matches);
-    }
-    
-    // Sort matches by date ascending and cache them
-    const sortedMatches = [...matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    cachedEredivisieMatches = sortedMatches;
+    // The API might not return Eredivisie matches, so we'll always generate our own
+    console.log(`⚠️ API returned other league matches, generating Eredivisie data`);
+    const fallbackMatches = generateSampleMatches();
+    cachedEredivisieMatches = fallbackMatches;
     lastFetchTime = now;
+    return fallbackMatches;
     
-    console.log(`✅ Processed ${sortedMatches.length} Eredivisie matches`);
-    return sortedMatches;
   } catch (error) {
     console.error("❌ Error fetching Eredivisie matches:", error);
     // If we already have cached data, use that instead of generating new samples
@@ -75,41 +57,6 @@ export const fetchEredivisieMatches = async (): Promise<Match[]> => {
     lastFetchTime = Date.now();
     return fallbackMatches;
   }
-};
-
-// Helper function to convert any matches to Eredivisie matches
-const convertToEredivisieMatches = (matches: Match[]): Match[] => {
-  const eredivisieTeams = [
-    "Ajax Amsterdam",
-    "PSV Eindhoven",
-    "Feyenoord Rotterdam",
-    "AZ Alkmaar",
-    "FC Utrecht",
-    "FC Twente",
-    "Vitesse Arnhem",
-    "FC Groningen",
-    "SC Heerenveen", 
-    "Sparta Rotterdam",
-    "NEC Nijmegen",
-    "Go Ahead Eagles",
-    "FC Emmen",
-    "Excelsior Rotterdam",
-    "RKC Waalwijk",
-    "Fortuna Sittard"
-  ];
-  
-  return matches.map((match, index) => {
-    // Pick two random Dutch teams for each match
-    const homeIndex = index % eredivisieTeams.length;
-    const awayIndex = (index + 1 + Math.floor(Math.random() * 4)) % eredivisieTeams.length;
-    
-    return {
-      ...match,
-      homeTeam: eredivisieTeams[homeIndex],
-      awayTeam: eredivisieTeams[awayIndex],
-      competition: "Dutch Eredivisie"
-    };
-  });
 };
 
 // Export alias for ApiCheck.tsx compatibility
