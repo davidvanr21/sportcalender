@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Match } from '../types';
 import { Button } from '@/components/ui/button';
@@ -49,19 +48,6 @@ const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDo
     displayMatchesByMonth[monthYear].push(match);
   });
 
-  // Function to get status badge color based on status
-  const getStatusBadgeClass = (status: string) => {
-    status = status.toLowerCase();
-    if (status.includes('not started') || status.includes('scheduled')) {
-      return 'bg-blue-100 text-blue-800';
-    } else if (status.includes('postponed') || status.includes('cancelled')) {
-      return 'bg-amber-100 text-amber-800';
-    } else if (status.includes('finished') || status.includes('completed')) {
-      return 'bg-green-100 text-green-800';
-    }
-    return 'bg-gray-100 text-gray-800'; // Default
-  };
-
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-6">
@@ -89,7 +75,7 @@ const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDo
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
       <div className="flex flex-col gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-bold">{teamName} Wedstrijdagenda</h2>
+          <h2 className="text-xl font-bold text-black">{teamName} Wedstrijdagenda</h2>
           <p className="text-gray-600">{showAllMatches ? matches.length : Math.min(5, matches.length)} van {matches.length} wedstrijden</p>
         </div>
         <Button 
@@ -111,7 +97,7 @@ const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDo
         <div className="space-y-6">
           {Object.entries(displayMatchesByMonth).map(([monthYear, monthMatches]) => (
             <div key={monthYear}>
-              <h3 className="text-lg font-semibold mb-3 border-b pb-1">{monthYear}</h3>
+              <h3 className="text-lg font-semibold mb-3 border-b pb-1 text-black">{monthYear}</h3>
               <div className="space-y-3">
                 {monthMatches.map(match => {
                   const date = new Date(match.date);
@@ -121,23 +107,21 @@ const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDo
                   return (
                     <div key={match.id} className="flex flex-col sm:flex-row sm:items-center p-3 rounded-md hover:bg-gray-50 border border-gray-100">
                       <div className="flex items-center mb-1 sm:mb-0">
-                        <div className="w-16 text-sm text-gray-600 font-medium">
+                        <div className="w-16 text-sm text-black font-medium">
                           {date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
                         </div>
-                        <div className="w-16 text-sm text-gray-600">
+                        <div className="w-16 text-sm text-black">
                           {match.time || "TBD"}
                         </div>
                       </div>
-                      <div className="flex-grow font-medium mb-1 sm:mb-0">
+                      <div className="flex-grow font-medium mb-1 sm:mb-0 text-black">
                         {isHome ? teamName : opponent} vs {isHome ? opponent : teamName}
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 self-start sm:self-auto">
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 self-start sm:self-auto text-black">
                           {match.competition}
                         </span>
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusBadgeClass(match.status)}`}>
-                          {match.status}
-                        </span>
+                        {/* Status badges removed as requested */}
                       </div>
                     </div>
                   );
@@ -153,7 +137,7 @@ const MatchesPreview: React.FC<MatchesPreviewProps> = ({ matches, teamName, onDo
           <Button 
             variant="outline" 
             onClick={() => setShowAllMatches(!showAllMatches)}
-            className="w-full"
+            className="w-full text-black"
           >
             {showAllMatches ? "Toon minder wedstrijden" : "Toon alle wedstrijden"}
             <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${showAllMatches ? 'rotate-180' : ''}`} />

@@ -160,7 +160,7 @@ const Index = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">EREDIVISIE <span className="text-green-400">&</span> LAUNCH</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">VOETBALWEDSTRIJDEN DIRECT IN JE AGENDA</h1>
           <motion.p 
             className="text-lg text-green-400/80"
             animate={{ 

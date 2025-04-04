@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 const Header: React.FC = () => {
   return (
-    <header className="bg-gradient-to-r from-green-800 via-green-600 to-green-500 text-white shadow-md">
+    <header className="bg-gradient-to-r from-green-900 via-green-700 to-green-500 text-white shadow-md">
       <div className="container mx-auto px-4 py-6 flex items-center justify-between">
         <motion.div
           className="flex items-center space-x-2"
@@ -14,21 +14,23 @@ const Header: React.FC = () => {
           transition={{ duration: 0.5 }}
         >
           <Goal className="h-8 w-8" />
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Sportcalender</h1>
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-extrabold uppercase tracking-wider">SPORTCALENDER</h1>
         </motion.div>
-        <motion.p 
-          className="text-sm md:text-base hidden md:block"
-          animate={{ 
-            x: [0, 10, 0],
-          }}
-          transition={{ 
-            repeat: Infinity,
-            duration: 3,
-            ease: "easeInOut" 
-          }}
-        >
-          Download wedstrijdschema's naar je agenda
-        </motion.p>
+        <div className="relative overflow-hidden w-64 md:w-80">
+          <motion.p 
+            className="text-sm md:text-base whitespace-nowrap"
+            animate={{ 
+              x: [300, -300],
+            }}
+            transition={{ 
+              repeat: Infinity,
+              duration: 10,
+              ease: "linear" 
+            }}
+          >
+            Voetbalwedstrijden direct in je agenda
+          </motion.p>
+        </div>
       </div>
     </header>
   );
