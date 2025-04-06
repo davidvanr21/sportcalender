@@ -10,8 +10,8 @@ import { leagues } from '@/data/leagues';
 import { teams } from '@/data/teams';
 import { getMatchesForTeam, getMatchesForTeamSync } from '@/services/footballApiService';
 import { generateICS } from '@/utils/icsGenerator';
-import { useToast } from "@/components/ui/use-toast";
-import { Share, Calendar, Download, ArrowRight, RefreshCw } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { Share, Calendar, Download, ArrowRight, RefreshCw, Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -146,7 +146,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-green-300">
+    <div className="min-h-screen flex flex-col football-pattern">
       <Header />
       
       <motion.main 
@@ -160,9 +160,9 @@ const Index = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">VOETBALWEDSTRIJDEN DIRECT IN JE AGENDA</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight text-sport-green shine-effect">VOETBALWEDSTRIJDEN DIRECT IN JE AGENDA</h1>
           <motion.p 
-            className="text-lg text-green-400/80"
+            className="text-lg text-sport-green/80"
             animate={{ 
               scale: [1, 1.02, 1],
             }}
@@ -180,7 +180,7 @@ const Index = () => {
           variants={container}
           initial="hidden"
           animate="show"
-          className="max-w-md mx-auto bg-black border border-green-400/30 rounded-lg p-6 mb-8 shadow-lg"
+          className="max-w-md mx-auto grass-card rounded-lg p-6 mb-8 shadow-lg"
         >
           <motion.div variants={item}>
             <LeagueSelector 
@@ -222,22 +222,22 @@ const Index = () => {
           animate="show"
           className="max-w-md mx-auto py-8"
         >
-          <motion.h2 variants={item} className="text-2xl font-bold mb-6 text-center text-green-400">HOE WERKT HET?</motion.h2>
+          <motion.h2 variants={item} className="text-2xl font-bold mb-6 text-center text-sport-green">HOE WERKT HET?</motion.h2>
           <div className="space-y-4">
-            <motion.div variants={item} className="bg-black/80 border border-green-400/30 p-6 rounded-lg shadow-md">
-              <div className="w-10 h-10 bg-green-400 text-black rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">1</div>
-              <h3 className="text-lg font-semibold mb-2 text-center">Selecteer je club</h3>
-              <p className="text-sm text-green-300/80 text-center">Kies je favoriete voetbalclub uit de lijst van beschikbare teams per competitie.</p>
+            <motion.div variants={item} className="grass-card p-6 rounded-lg shadow-md">
+              <div className="w-10 h-10 bg-sport-accent text-sport-green rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">1</div>
+              <h3 className="text-lg font-semibold mb-2 text-center text-sport-green">Selecteer je club</h3>
+              <p className="text-sm text-sport-green/80 text-center">Kies je favoriete voetbalclub uit de lijst van beschikbare teams per competitie.</p>
             </motion.div>
-            <motion.div variants={item} className="bg-black/80 border border-green-400/30 p-6 rounded-lg shadow-md">
-              <div className="w-10 h-10 bg-green-400 text-black rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">2</div>
-              <h3 className="text-lg font-semibold mb-2 text-center">Bekijk de wedstrijden</h3>
-              <p className="text-sm text-green-300/80 text-center">Bekijk alle aankomende wedstrijden van je gekozen club.</p>
+            <motion.div variants={item} className="grass-card p-6 rounded-lg shadow-md">
+              <div className="w-10 h-10 bg-sport-accent text-sport-green rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">2</div>
+              <h3 className="text-lg font-semibold mb-2 text-center text-sport-green">Bekijk de wedstrijden</h3>
+              <p className="text-sm text-sport-green/80 text-center">Bekijk alle aankomende wedstrijden van je gekozen club.</p>
             </motion.div>
-            <motion.div variants={item} className="bg-black/80 border border-green-400/30 p-6 rounded-lg shadow-md">
-              <div className="w-10 h-10 bg-green-400 text-black rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">3</div>
-              <h3 className="text-lg font-semibold mb-2 text-center">Download naar agenda</h3>
-              <p className="text-sm text-green-300/80 text-center">Download het wedstrijdschema en importeer het in je favoriete agenda-app.</p>
+            <motion.div variants={item} className="grass-card p-6 rounded-lg shadow-md">
+              <div className="w-10 h-10 bg-sport-accent text-sport-green rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">3</div>
+              <h3 className="text-lg font-semibold mb-2 text-center text-sport-green">Download naar agenda</h3>
+              <p className="text-sm text-sport-green/80 text-center">Download het wedstrijdschema en importeer het in je favoriete agenda-app.</p>
             </motion.div>
           </div>
         </motion.section>
@@ -250,10 +250,10 @@ const Index = () => {
         >
           <Button 
             asChild
-            className="bg-green-400 hover:bg-green-500 text-black font-bold text-lg p-6"
+            className="football-btn text-lg p-6 group"
           >
             <Link to="/api-check" className="flex items-center gap-2">
-              Bekijk alle wedstrijden <ArrowRight size={20} />
+              Bekijk alle wedstrijden <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>
         </motion.div>

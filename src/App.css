@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -12,10 +13,10 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em #3a8952aa);
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em #f0c14baa);
 }
 
 @keyframes logo-spin {
@@ -39,4 +40,20 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Football field lines pattern */
+.field-pattern {
+  background-color: #F2FCE2;
+  background-image: 
+    linear-gradient(to right, rgba(58, 137, 82, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(58, 137, 82, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Football stitching pattern for cards */
+.football-stitching {
+  border: 2px dashed rgba(240, 193, 75, 0.5);
+  box-shadow: 0 6px 20px rgba(58, 137, 82, 0.15);
+  border-radius: 12px;
 }

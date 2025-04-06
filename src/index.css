@@ -1,26 +1,27 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 100 40% 98%;
+    --foreground: 143 38% 25%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 143 38% 25%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 143 38% 25%;
 
-    --primary: 210 70% 40%;
+    --primary: 143 38% 37%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 143 38% 37%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 40 92% 61%;
+    --secondary-foreground: 40 70% 30%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 143 20% 96.1%;
+    --muted-foreground: 143 30% 46.9%;
 
     --accent: 40 92% 61%;
     --accent-foreground: 40 70% 30%;
@@ -28,9 +29,9 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 143 20% 91.4%;
+    --input: 143 20% 91.4%;
+    --ring: 143 38% 37%;
 
     --radius: 0.5rem;
 
@@ -108,7 +109,7 @@
 /* Custom styles for football themed elements */
 @layer components {
   .football-container {
-    background-image: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.9) 0%, rgba(236, 246, 255, 0.9) 90%);
+    background-image: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.9), rgba(242, 252, 226, 0.9) 90%);
     background-size: cover;
   }
   
@@ -117,7 +118,7 @@
   }
   
   .shine-effect {
-    background: linear-gradient(90deg, #000 0%, #fff 25%, #000 50%);
+    background: linear-gradient(90deg, #3a8952 0%, #f0c14b 25%, #3a8952 50%);
     background-size: 200% auto;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -163,5 +164,25 @@
   [role="combobox"], 
   [role="listbox"] {
     @apply text-black;
+  }
+  
+  /* Football grass card effect */
+  .grass-card {
+    background: linear-gradient(to bottom, #F2FCE2, #D6E7C6);
+    border: 1px solid rgba(58, 137, 82, 0.2);
+    box-shadow: 0 4px 12px rgba(58, 137, 82, 0.1);
+  }
+  
+  /* Football themed gradient button */
+  .football-btn {
+    background: linear-gradient(135deg, #3a8952, #275c33);
+    @apply text-white font-bold shadow-md hover:shadow-lg transition-all duration-300;
+  }
+  
+  /* Football pattern background */
+  .football-pattern {
+    background-color: #F2FCE2;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L55 30 L30 55 L5 30 Z' fill='none' stroke='%233a895233' stroke-width='1'/%3E%3C/svg%3E");
+    background-size: 30px 30px;
   }
 }

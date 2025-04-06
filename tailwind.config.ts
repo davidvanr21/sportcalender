@@ -69,6 +69,10 @@ export default {
 					'green': '#3a8952',
 					'field': '#275c33',
 					'accent': '#f0c14b',
+					'light-green': '#F2FCE2',
+					'soft-yellow': '#FEF7CD',
+					'soft-orange': '#FEC6A1',
+					'soft-blue': '#D3E4FD',
 				}
 			},
 			borderRadius: {
@@ -96,15 +100,26 @@ export default {
 				'pulse-soft': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.8' },
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' },
+				},
+				'shine': {
+					'to': { backgroundPosition: '200% center' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'pulse-soft': 'pulse-soft 2s infinite ease-in-out',
+				'float': 'float 3s infinite ease-in-out',
+				'shine': 'shine 3s linear infinite',
 			},
 			backgroundImage: {
 				'pitch-pattern': "url('/pitch-bg.png')",
+				'football-texture': "url('/football-texture.png')",
+				'field-gradient': "linear-gradient(to bottom, #F2FCE2, #D6E7C6)",
 			}
 		}
 	},
