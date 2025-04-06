@@ -1,1 +1,5 @@
+
 project_id = "tryskxsqfbzozhixozuf"
+
+[functions.fetch-eredivisie-matches]
+verify_jwt = true
