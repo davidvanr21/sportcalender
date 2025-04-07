@@ -20,30 +20,51 @@ serve(async (req) => {
     // Create Supabase client with service role key
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    console.log("📊 Fetching Eredivisie data using the free football-data.org API");
+    console.log("🔄 Fetching Eredivisie matches from TheSportsDB API");
     
-    // Generate sample match data as a reliable fallback
-    const sampleMatches = generateSampleMatches();
+    // Fetch data from the external API
+    const apiResponse = await fetch("https://www.thesportsdb.com/api/v1/json/1/eventsseason.php?id=4337");
     
-    console.log(`Generated ${sampleMatches.length} sample Eredivisie matches`);
+    if (!apiResponse.ok) {
+      throw new Error(`API responded with status: ${apiResponse.status}`);
+    }
     
-    // Upsert the matches into the eredivisie_matches table
+    const data = await apiResponse.json();
+    
+    if (!data.events || !Array.isArray(data.events)) {
+      throw new Error("Invalid API response format: 'events' array is missing");
+    }
+    
+    console.log(`📊 Fetched ${data.events.length} Eredivisie matches from API`);
+    
+    // Map the events to the structure needed for our database
+    const mappedEvents = data.events.map(event => ({
+      id: event.idEvent,
+      date_event: event.dateEvent,
+      str_event: event.strEvent,
+      str_home_team: event.strHomeTeam,
+      str_away_team: event.strAwayTeam,
+      int_home_score: event.intHomeScore !== null ? parseInt(event.intHomeScore) : null,
+      int_away_score: event.intAwayScore !== null ? parseInt(event.intAwayScore) : null
+    }));
+    
+    // Upsert the events into the eredivisie_matches table
     const { data: upsertData, error } = await supabase
       .from('eredivisie_matches')
-      .upsert(sampleMatches, { onConflict: 'id' });
+      .upsert(mappedEvents, { onConflict: 'id' });
     
     if (error) {
       throw error;
     }
     
-    console.log(`✅ Successfully upserted ${sampleMatches.length} Eredivisie matches`);
+    console.log(`✅ Successfully upserted ${mappedEvents.length} Eredivisie matches`);
     
     // Return success response
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Successfully generated and stored ${sampleMatches.length} Eredivisie matches`,
-        matches: sampleMatches.slice(0, 5), // Return just the first 5 matches as preview
+        message: `Successfully fetched and stored ${mappedEvents.length} Eredivisie matches`,
+        matches: mappedEvents.slice(0, 5) // Return just the first 5 matches as preview
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -51,7 +72,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("❌ Error generating or storing Eredivisie matches:", error);
+    console.error("❌ Error fetching or storing Eredivisie matches:", error);
     
     // Return error response
     return new Response(
@@ -66,102 +87,3 @@ serve(async (req) => {
     );
   }
 });
-
-/**
- * Generates sample Eredivisie matches for reliable data
- * @returns Array of sample match data
- */
-function generateSampleMatches() {
-  console.log("🔄 Generating reliable sample Eredivisie matches");
-  
-  const eredivisieTeams = [
-    "Ajax Amsterdam",
-    "PSV Eindhoven",
-    "Feyenoord Rotterdam",
-    "AZ Alkmaar",
-    "FC Utrecht",
-    "FC Twente",
-    "Vitesse Arnhem",
-    "FC Groningen",
-    "SC Heerenveen", 
-    "Sparta Rotterdam",
-    "NEC Nijmegen",
-    "Go Ahead Eagles",
-    "FC Emmen",
-    "Excelsior Rotterdam",
-    "RKC Waalwijk",
-    "Fortuna Sittard"
-  ];
-  
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const matches = [];
-  
-  // Create some upcoming fixtures
-  for (let i = 0; i < 50; i++) {
-    // Randomly select two different teams
-    const homeIndex = Math.floor(Math.random() * eredivisieTeams.length);
-    let awayIndex = homeIndex;
-    
-    // Make sure home and away teams are different
-    while (awayIndex === homeIndex) {
-      awayIndex = Math.floor(Math.random() * eredivisieTeams.length);
-    }
-    
-    // Generate a date within next 2 months
-    const matchDate = new Date();
-    matchDate.setDate(matchDate.getDate() + Math.floor(Math.random() * 60));
-    const formattedDate = matchDate.toISOString().split('T')[0]; // YYYY-MM-DD
-    
-    // For fixtures far in the future, don't add scores
-    const matchId = `generated-${i}-${currentYear}`;
-    const homeTeam = eredivisieTeams[homeIndex];
-    const awayTeam = eredivisieTeams[awayIndex];
-    
-    matches.push({
-      id: matchId,
-      date_event: formattedDate,
-      str_event: `${homeTeam} vs ${awayTeam}`,
-      str_home_team: homeTeam,
-      str_away_team: awayTeam,
-      int_home_score: null,
-      int_away_score: null,
-    });
-  }
-  
-  // Create some past matches with scores
-  for (let i = 0; i < 30; i++) {
-    // Randomly select two different teams
-    const homeIndex = Math.floor(Math.random() * eredivisieTeams.length);
-    let awayIndex = homeIndex;
-    
-    while (awayIndex === homeIndex) {
-      awayIndex = Math.floor(Math.random() * eredivisieTeams.length);
-    }
-    
-    // Generate a date within past 30 days
-    const matchDate = new Date();
-    matchDate.setDate(matchDate.getDate() - Math.floor(Math.random() * 30));
-    const formattedDate = matchDate.toISOString().split('T')[0]; // YYYY-MM-DD
-    
-    // Generate random scores
-    const homeScore = Math.floor(Math.random() * 5);
-    const awayScore = Math.floor(Math.random() * 4);
-    
-    const matchId = `past-${i}-${currentYear}`;
-    const homeTeam = eredivisieTeams[homeIndex];
-    const awayTeam = eredivisieTeams[awayIndex];
-    
-    matches.push({
-      id: matchId,
-      date_event: formattedDate,
-      str_event: `${homeTeam} vs ${awayTeam}`,
-      str_home_team: homeTeam,
-      str_away_team: awayTeam,
-      int_home_score: homeScore,
-      int_away_score: awayScore,
-    });
-  }
-  
-  return matches;
-}
